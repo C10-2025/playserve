@@ -21,7 +21,7 @@ Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para 
 - Foto profil.
 - Rank pemain yang ditentukan berdasarkan jumlah kemenangan.
 
-### 2. Match Making untuk membantu pengguna menemukan lawan main yang sesuai baik berdasarkan rank maupun radius lokasi (Deltakristiano Kurniaputra).  
+### 2. Match Making untuk membantu pengguna menemukan lawan main yang sesuai baik berdasarkan rank maupun radius lokasi (Muhammad Nadhif Ibrahim).  
 - Algoritma pencocokan berdasarkan level keterampilan dan lokasi.
 - Rekomendasi otomatis pemain yang sedang mencari partner. Apabila match diterima maka akan diberikan informasi profilenya dan dapat berlanjut di sosial media masing-masing pemain
 
@@ -30,7 +30,7 @@ Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para 
 - Kalender ketersediaan lapangan.
 - Penambahan lapangan baru oleh field owner.
 
-### 4. Community untuk berbagi informasi dan berdiskusi sesama pemain tennis dengan berbagai grup khusus sesuai kriteria tertentu (Muhammad Nadhif Ibrahim).
+### 4. Community untuk berbagi informasi dan berdiskusi sesama pemain tennis dengan berbagai grup khusus sesuai kriteria tertentu (Jonathan Yitskhaq Rundjan).
 - Pencarian community.
 - Sistem post dan reply yang dikhususkan untuk anggota community.
 

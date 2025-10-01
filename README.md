@@ -27,9 +27,7 @@ Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para 
 
 ### 3. Booking Lapangan (player) dan Add New Field (field owner) untuk reservasi lapangan tennis secara online serta menambahkan pilihan lapangan (Deltakristiano Kurniaputra).
 - Pencarian lapangan berdasarkan lokasi dan harga.
-- Kalender ketersediaan lapangan real-time
-- Sistem pembayaran.
-- Konfirmasi dan notifikasi pemesanan melalui email.
+- Kalender ketersediaan lapangan.
 - Penambahan lapangan baru oleh field owner.
 
 ### 4. Community untuk berbagi informasi dan berdiskusi sesama pemain tennis dengan berbagai grup khusus sesuai kriteria tertentu (Muhammad Nadhif Ibrahim).
@@ -37,7 +35,6 @@ Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para 
 - Sistem post dan reply yang dikhususkan untuk anggota community.
 
 ### 5. Review untuk berbagi pengalaman bermain di suatu lapangan (Marco Imanuel).
-- Untuk menulis ulasan maka pengguna harus pernah memesan lapangan tersebut melalui PlayServe.
 - Ulasan lapangan berdasarkan kualitas fasilitas, kebersihan, dan harga.
 - Sistem bintang dan komentar.
 

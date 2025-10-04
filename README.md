@@ -43,6 +43,6 @@ Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para 
 2. Player, role untuk para penggemar tennis. Semua fitur selain Add New Field pada daftar modul dimiliki oleh player.
 
 ## 🔗 Link
-- [PWS](https://pbp.cs.ui.ac.id/jonathan.yitskhaq/PlayServe)
+- [PWS](https://jonathan-yitskhaq-playserve.pbp.cs.ui.ac.id/)
 - [Dataset](#)
 - [Design](https://www.figma.com/design/Ov2RsMYx9U1vhZXtw1lSY4/UI-UX-WEB?node-id=0-1&t=r3axZEDkETmZLSoK-1)

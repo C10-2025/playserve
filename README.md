@@ -1,5 +1,5 @@
 # 🎾 PlayServe
-Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para penggemar tennis, dengan tambahan elemen gamification. Website akan menyediakan beberapa fitur untuk pemain tennis, mulai dari pengelolaan profil pribadi dengan sistem rank yang disesuaikan dari banyak kemenangan, pencarian pasangan bermain berdasarkan rank maupun radius lokasi, pemesanan lapangan secara online, komunitas untuk berbagi informasi dan pengalaman, hingga ulasan lapangan yang membantu pemain lain dalam memilih tempat bermain.
+Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para penggemar tennis, dengan tambahan elemen gamification. Website akan menyediakan beberapa fitur untuk pemain tennis, mulai dari pengelolaan profil pribadi dengan sistem rank yang disesuaikan dari banyak kemenangan, pencarian pasangan bermain berdasarkan rank dan radius lokasi, pemesanan lapangan secara online, komunitas untuk berbagi informasi dan pengalaman, hingga ulasan lapangan yang membantu pemain lain dalam memilih tempat bermain.
 
 ## 📑 Daftar Isi
 - [Anggota Kelompok](#anggota-kelompok)
@@ -21,14 +21,14 @@ Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para 
 - Foto profil.
 - Rank pemain yang ditentukan berdasarkan jumlah kemenangan.
 
-### 2. Match Making untuk membantu pengguna menemukan lawan main yang sesuai baik berdasarkan rank maupun radius lokasi (Muhammad Nadhif Ibrahim).  
+### 2. Match Making untuk membantu pengguna menemukan lawan main yang sesuai baik berdasarkan rank dan radius lokasi (Muhammad Nadhif Ibrahim).  
 - Algoritma pencocokan berdasarkan level keterampilan dan lokasi.
-- Rekomendasi otomatis pemain yang sedang mencari partner. Apabila match diterima maka akan diberikan informasi profilenya dan dapat berlanjut di sosial media masing-masing pemain
+- Rekomendasi otomatis pemain yang sedang mencari partner. Apabila match diterima maka akan diberikan informasi profilenya dan dapat berlanjut di sosial media masing-masing pemain.
 
-### 3. Booking Lapangan (player) dan Add New Field (field owner) untuk reservasi lapangan tennis secara online serta menambahkan pilihan lapangan (Deltakristiano Kurniaputra).
+### 3. Booking Lapangan (player) dan Add New Field (admin) untuk reservasi lapangan tennis secara online serta menambahkan pilihan lapangan (Deltakristiano Kurniaputra).
 - Pencarian lapangan berdasarkan lokasi dan harga.
 - Kalender ketersediaan lapangan.
-- Penambahan lapangan baru oleh field owner.
+- Penambahan lapangan baru oleh admin.
 
 ### 4. Community untuk berbagi informasi dan berdiskusi sesama pemain tennis dengan berbagai grup khusus sesuai kriteria tertentu (Jonathan Yitskhaq Rundjan).
 - Pencarian community.
@@ -39,7 +39,7 @@ Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para 
 - Sistem bintang dan komentar.
 
 ## 👤 Jenis Pengguna Website
-1. Field Owner atau pemilik lapangan untuk menambahkan lapangannya agar dapat reservasi secara online. Pada dasarnya field owner hanya memiliki fitur Profile (tanpa rank) dan Add New Field untuk penambahan pilihan lapangan.
+1. Admin untuk menambahkan lapangannya agar dapat reservasi secara online. Selain itu, admin dapat menghapus community ataupun profile user yang melanggar aturan.
 2. Player, role untuk para penggemar tennis. Semua fitur selain Add New Field pada daftar modul dimiliki oleh player.
 
 ## 🔗 Link

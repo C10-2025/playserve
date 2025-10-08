@@ -1,5 +1,5 @@
 # 🎾 PlayServe
-Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para penggemar tennis, dengan tambahan elemen gamification. Website akan menyediakan beberapa fitur untuk pemain tennis, mulai dari pengelolaan profil pribadi dengan sistem rank yang disesuaikan dari banyak kemenangan, pencarian pasangan bermain berdasarkan rank dan radius lokasi, pemesanan lapangan secara online, komunitas untuk berbagi informasi dan pengalaman, hingga ulasan lapangan yang membantu pemain lain dalam memilih tempat bermain.
+Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para penggemar tennis, dengan tambahan elemen gamification. Website akan menyediakan beberapa fitur untuk pemain tennis, mulai dari pengelolaan profil pribadi dengan sistem rank yang disesuaikan dari banyak kemenangan, pencarian pasangan bermain berdasarkan rank dan radius lokasi, pemesanan lapangan secara online, komunitas untuk berbagi informasi, hingga ulasan lapangan yang membantu pemain lain dalam memilih tempat bermain.
 
 ## 📑 Daftar Isi
 - [Anggota Kelompok](#anggota-kelompok)
@@ -17,8 +17,8 @@ Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para 
 ## 📦 Modul
 
 ### 1. Profile untuk identitas setiap pengguna (Annisa Fakhira Cendekia).
-- Informasi dasar, seperti nama, umur, lokasi, serta media sosial.
-- Foto profil.
+- Informasi dasar, seperti nama, lokasi (drop-down), serta media sosial.
+- Menyediakan 5 avatar untuk profile.
 - Rank pemain yang ditentukan berdasarkan jumlah kemenangan.
 
 ### 2. Match Making untuk membantu pengguna menemukan lawan main yang sesuai baik berdasarkan rank dan radius lokasi (Muhammad Nadhif Ibrahim).  
@@ -30,16 +30,16 @@ Website kami bernama PlayServe, sebuah website yang dirancang khusus untuk para 
 - Kalender ketersediaan lapangan.
 - Penambahan lapangan baru oleh admin.
 
-### 4. Community untuk berbagi informasi dan berdiskusi sesama pemain tennis dengan berbagai grup khusus sesuai kriteria tertentu (Jonathan Yitskhaq Rundjan).
+### 4. Community untuk berbagi informasi dalam suatu komunitas di satu lapangan (Jonathan Yitskhaq Rundjan).
 - Pencarian community.
 - Sistem post dan reply yang dikhususkan untuk anggota community.
+- Community dibuat dan dihapus oleh admin.
 
 ### 5. Review untuk berbagi pengalaman bermain di suatu lapangan (Marco Imanuel).
-- Ulasan lapangan berdasarkan kualitas fasilitas, kebersihan, dan harga.
-- Sistem bintang dan komentar.
+- Sistem rating dengan angka dan komentar.
 
 ## 👤 Jenis Pengguna Website
-1. Admin untuk menambahkan lapangannya agar dapat reservasi secara online. Selain itu, admin dapat menghapus community ataupun profile user yang melanggar aturan.
+1. Admin untuk menambahkan lapangannya agar dapat reservasi secara online. Selain itu, admin dapat menambahkan dan menghapus community ataupun profile user yang melanggar aturan.
 2. Player, role untuk para penggemar tennis. Semua fitur selain Add New Field pada daftar modul dimiliki oleh player.
 
 ## 🔗 Link

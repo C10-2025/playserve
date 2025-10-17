@@ -1,0 +1,464 @@
+:root {
+    --background-blue: #1146A9;
+    --navbar-blue: #082459;
+    --lime-green: #C1D752;
+    --white: #ffffff;
+    --off-white: #f0f0f0;
+    --dark-text: #082459;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    color: var(--white);
+    background-color: var(--background-blue);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+h1 {
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 0;
+}
+
+p {
+    font-size: 1.4rem;
+    line-height: 1.6;
+    color: var(--off-white);
+    max-width: 550px;
+    margin-top: 0;
+}
+
+.nav-links a {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 50px;
+    background-color: var(--navbar-blue);
+}
+
+.navbar .logo img {
+    width: 150px;
+    height: auto;
+    display: block;
+}
+
+.nav-links {
+    display: none;
+    gap: 35px;
+}
+
+.nav-links a {
+    font-weight: 500;
+}
+
+.nav-buttons {
+    display: none;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-profile-link {
+    text-decoration: none;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+}
+
+.profile-username {
+    font-weight: 700;
+    color: var(--white);
+    font-size: 0.9rem;
+}
+
+.profile-rank {
+    font-size: 0.8rem;
+    color: var(--lime-green);
+    font-weight: 500;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 30px;
+    border-radius: 6px;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-align: center;
+    background-color: var(--lime-green);
+    color: var(--dark-text);
+    border: 2px solid var(--lime-green);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+.btn.btn-outline {
+    background-color: transparent;
+    color: var(--lime-green);
+}
+
+.hero {
+    padding: 100px 80px;
+    text-align: left;
+    background-color: var(--navbar-blue);
+    background-image: url('../image/background_landing.svg');
+    background-size: cover;
+    background-position: center 70%;
+    border-bottom: 8px solid var(--navbar-blue);
+}
+
+.info-section {
+    padding-top: 50px;
+    padding-bottom: 100px;
+    padding-left: 80px;
+    padding-right: 80px;
+    background-color: var(--navbar-blue);
+    text-align: left;
+}
+
+.cta-section {
+    padding: 80px 50px;
+}
+
+.cta-box {
+    background-color: var(--navbar-blue);
+    border-radius: 10px;
+    max-width: 1820px;
+    margin: 0 auto;
+    text-align: left;
+    padding-top: 5px;
+    padding-bottom: 60px;
+    padding-left: 60px;
+    padding-right: 60px;
+}
+
+.cta-box .btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 20px 60px;
+    font-size: 1.2rem;
+    box-sizing: border-box;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 20, 50, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: var(--white);
+    color: var(--dark-text);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: all 0.2s ease-in-out;
+}
+
+.modal-overlay.is-open {
+    display: flex;
+}
+
+.modal-overlay.is-open .modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: none;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: #888;
+}
+
+.modal-close-btn:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e0e0e0;
+    background-color: #f7f7f7;
+    border-radius: 0 0 12px 12px;
+}
+
+.toast-popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 20, 50, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.toast-popup-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: all 0.2s ease-out;
+}
+
+.toast-popup-overlay.is-visible {
+    display: flex;
+}
+
+.toast-popup-overlay.is-visible .toast-popup-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.toast-popup-icon {
+    font-size: 2rem;
+}
+
+.toast-popup-text h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: none;
+}
+
+.toast-popup-text p {
+    margin: 4px 0 0 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    max-width: none;
+}
+
+.toast-popup-content.success {
+    background-color: var(--lime-green);
+    color: var(--dark-text);
+}
+
+.toast-popup-content.error {
+    background-color: #e53e3e;
+    color: var(--white);
+}
+
+.mobile-menu-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.hamburger-line {
+    display: block;
+    width: 24px;
+    height: 3px;
+    margin: 5px 0;
+    background-color: var(--white);
+    border-radius: 3px;
+}
+
+.mobile-menu {
+    display: none;
+    background-color: var(--navbar-blue);
+    padding: 20px;
+    text-align: center;
+}
+
+.mobile-menu a {
+    display: block;
+    padding: 15px 0;
+    color: var(--white);
+    font-size: 1.2rem;
+    text-align: center; 
+}
+
+.mobile-menu .btn {
+    margin-top: 15px;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 1200px) {
+    .nav-links, .nav-buttons {
+        display: flex;
+    }
+    .mobile-menu-button {
+        display: none;
+    }
+}
+
+main {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.auth-page {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+    
+    background-color: var(--background-blue); 
+    background-image: url('../image/background.svg'); 
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.auth-container {
+    padding: 30px 80px 60px 80px;
+    text-align: center;
+    max-width: 100%;
+    width: 90%;
+    z-index: 5;
+}
+
+.logo-auth {
+    position: absolute;
+    top: 20px;
+    left: 50px;
+    z-index: 10;
+}
+.logo-auth img {
+    width: 150px;
+    height: auto;
+}
+
+.auth-container h1 {
+    font-size: 3.5rem; 
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    margin-bottom: 5px; 
+}
+.auth-container p {
+    font-size: 1.4rem;
+    color: var(--off-white);
+    margin-top: 0;
+    margin-bottom: 30px; 
+    font-weight: 500;
+    max-width: none;
+}
+
+.auth-container input {
+    width: 100%; 
+    max-width: 600px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    
+    border: none;
+    border-radius: 8px;
+    background-color: var(--white); 
+    color: var(--dark-text);
+    
+    font-size: 1.4rem;
+    
+    outline: none;
+    box-sizing: border-box;
+    display: block; 
+    margin: 0 auto 20px auto; 
+    
+    box-shadow: 0 0 0 2px var(--background-blue);
+}
+
+.auth-container button {
+    width: 100%; 
+    max-width: 600px;
+    padding: 15px;
+    background-color: var(--lime-green); 
+    color: var(--dark-text);
+    font-size: 1.5rem; 
+    font-weight: 800; 
+    border: none;
+    border-radius: 8px;
+    text-transform: uppercase;
+    margin: 20px auto 30px auto;
+    display: block;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.auth-link-text {
+    font-size: 1.2rem; 
+    margin-top: 0; 
+    color: var(--white); 
+}
+.auth-link-text a {
+    color: var(--lime-green);
+    font-weight: bold;
+}

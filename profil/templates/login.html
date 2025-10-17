@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PlayServe - Login{% endblock %}
+
+{% block content %}
+    
+    {# Wrapper utama untuk mengatur pemusatan vertikal dan background auth #}
+    <div class="auth-page">
+        
+        {# Logo harus diletakkan di luar auth-container agar bisa diposisikan absolut #}
+        <a href="{% url 'main:home' %}" class="logo-auth">
+            <img src="{% static 'image/logo.svg' %}" alt="PlayServe Logo">
+        </a>
+        
+        {# Wrapper form utama, tempat konten terpusat #}
+        <div class="auth-container">
+            
+            <h1>READY TO SERVE AGAIN?</h1>
+            <p>Your next opponent and favorite court are waiting.</p>
+
+            <form id="login-form">
+                {% csrf_token %}
+                
+                {# Input tanpa <br> #}
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                
+                {# Teks tombol sesuai gambar #}
+                <button type="submit">LET'S SERVE!</button>
+            </form>
+            
+            <p id="message" class="message"></p>
+            
+            {# Link pendaftaran #}
+            <p class="auth-link-text">New Player? <a href="{% url 'profil:register1' %}">Create a New Account</a></p>
+        </div>
+    </div>
+
+<script>
+    // ... (Logic JavaScript Anda yang sudah benar)
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch('{% url "profil:login" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; }); 
+                }
+                return response.json();
+            })
+            .then(data => {
+                const messageElement = document.getElementById('message');
+                messageElement.textContent = data.message;
+                
+                if (data.status === 'success') {
+                    messageElement.classList.remove('error');
+                    messageElement.classList.add('success'); 
+                    window.location.href = '/'; 
+                } else {
+                    messageElement.classList.remove('success');
+                    messageElement.classList.add('error');
+                }
+            })
+            .catch(error => {
+                const messageElement = document.getElementById('message');
+                messageElement.textContent = error.message || 'An unexpected error occurred.';
+                messageElement.classList.remove('success');
+                messageElement.classList.add('error');
+                console.error('Fetch error:', error);
+            });
+        });
+    });
+</script>
+{% endblock content %}

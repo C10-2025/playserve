@@ -1,0 +1,79 @@
+<div id="genericModal" class="modal-overlay">
+  <div id="modal-content" class="modal-content">
+    
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-title">Book a Court</h3>
+        <p style="font-size: 0.9rem; color: #555; margin: 5px 0 0 0;">Schedule your next match with ease.</p>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="hideModal()">
+        <svg fill="currentColor" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form id="modalForm">
+        {% csrf_token %}
+        <div class="form-group">
+          <input type="text" name="court_name" placeholder="Court Name" required>
+        </div>
+        <div class="form-group">
+          <input type="date" name="booking_date" required style="color: #888;">
+        </div>
+        <div class="form-group">
+          <input type="time" name="booking_time" required style="color: #888;">
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" onclick="hideModal()">Cancel</button>
+      <button type="submit" form="modalForm" class="btn">Book Now</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function showModal() {
+    document.getElementById('genericModal').classList.add('is-open'); 
+  }
+
+  function hideModal() {
+    document.getElementById('genericModal').classList.remove('is-open');
+  }
+
+  async function submitModalForm(event) {
+    event.preventDefault();
+    const form = document.getElementById('modalForm');
+    const formData = new FormData(form);
+    
+    // Ganti baris fetch di bawah ini
+    const response = await fetch('#', { // <-- UBAH DI SINI
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    });
+
+    if (response.ok) {
+        form.reset();
+        hideModal();
+        showToast('Success!', 'Your data would be saved here.', 'success');
+    } else {
+        console.error("Booking submission failed.");
+        showToast('Error!', 'This feature is not yet implemented.', 'error');
+    }
+  }
+
+  // Menghubungkan form submission dengan fungsi AJAX
+  document.getElementById('modalForm').addEventListener('submit', submitModalForm);
+  
+  // Menutup modal jika user mengklik di luar area konten
+  document.getElementById('genericModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+      hideModal();
+    }
+  });
+</script>

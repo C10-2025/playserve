@@ -136,26 +136,26 @@ p {
 }
 
 .hero {
-    padding: 100px 80px;
+    padding: 120px 60px;
     text-align: left;
     background-color: var(--navbar-blue);
     background-image: url('../image/background_landing.svg');
     background-size: cover;
-    background-position: center 70%;
+    background-position: center 50%;
     border-bottom: 8px solid var(--navbar-blue);
 }
 
 .info-section {
     padding-top: 50px;
     padding-bottom: 100px;
-    padding-left: 80px;
-    padding-right: 80px;
+    padding-left: 60px;
+    padding-right: 60px;
     background-color: var(--navbar-blue);
     text-align: left;
 }
 
 .cta-section {
-    padding: 80px 50px;
+    padding: 60px 50px;
 }
 
 .cta-box {
@@ -381,7 +381,7 @@ main {
 }
 
 .auth-container {
-    padding: 30px 80px 60px 80px;
+    padding: 30px 60px 60px 60px;
     text-align: center;
     max-width: 100%;
     width: 90%;

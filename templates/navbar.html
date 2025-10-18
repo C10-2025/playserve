@@ -20,16 +20,17 @@
 
     <div class="nav-buttons">
         {% if user.is_authenticated %}
-        BELUM BUAT VIEW PROFILE, INI BUAT VIEW PROFILE
-            <a href="" class="user-profile-link">
-                <div class="user-profile">
+            <a href="{% url 'profil:profile_update' %}" class="user-profile-link">
+                <div class="profile-info">
+                    <span class="profile-username">{{ user.username }}</span>
+                    <span class="profile-rank">{{ profile.rank }}</span>
+                </div>
+                <div class="avatar-container">
                     <img src="{% static profile.avatar %}" alt="Avatar" class="profile-avatar">
-                    <div class="profile-info">
-                        <span class="profile-username">{{ user.username }}</span>
-                        <span class="profile-rank">{{ profile.rank }}</span>
-                    </div>
+                    {% if profile.rank %}<img src="{% static 'image/'|add:profile.rank|lower|add:'.svg' %}" alt="Rank" class="rank-badge">{% endif %}
                 </div>
             </a>
+            <a href="{% url 'profil:logout' %}" class="btn">Logout</a>
         {% else %}
             <a href="{% url 'profil:login' %}" class="btn">Log In</a>
             <a href="{% url 'profil:register1' %}" class="btn btn-outline">Sign Up</a>
@@ -45,25 +46,27 @@
 
 <div class="mobile-menu">
     {% if user.is_authenticated %}
+        <a href="{% url 'profil:profile_update' %}" class="user-profile-link-mobile">
+            <div class="avatar-container">
+                <img src="{% static profile.avatar %}" alt="Avatar" class="profile-avatar">
+                {% if profile.rank %}<img src="{% static 'image/'|add:profile.rank|lower|add:'.svg' %}" alt="Rank" class="rank-badge">{% endif %}
+            </div>
+            <div class="profile-info">
+                <span class="profile-username">{{ user.username }}</span>
+                <span class="profile-rank">{{ profile.rank }}</span>
+            </div>
+        </a>
+        <hr class="mobile-menu-divider">
         <a href="#">Match Making</a>
         <a href="#">Book Courts</a>
         <a href="#">Community</a>
         <a href="#">Court Reviews</a>
+        <a href="{% url 'profil:logout' %}" class="btn">Logout</a>
     {% else %}
         <a href="{% url 'profil:login' %}">Match Making</a>
         <a href="{% url 'profil:login' %}">Book Courts</a>
         <a href="{% url 'profil:login' %}">Community</a>
         <a href="{% url 'profil:login' %}">Court Reviews</a>
-    {% endif %}
-    
-    <hr class="mobile-menu-divider">
-
-    {% if user.is_authenticated %}
-        <a href="" class="user-profile-link-mobile">
-            My Profile
-        </a>
-        <a href="{% url 'profil:logout' %}">Logout</a>
-    {% else %}
         <a href="{% url 'profil:login' %}" class="btn">Log In</a>
         <a href="{% url 'profil:register1' %}" class="btn btn-outline">Sign Up</a>
     {% endif %}

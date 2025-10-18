@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit My Profile - PlayServe{% endblock %}
+
+{% block content %}
+    {% include 'navbar.html' %}
+
+    <div class="auth-page">
+        <div class="edit-profile-container">
+            <h1>EDIT MY PROFILE</h1>
+            
+            <form id="edit-profile-form" action="{% url 'profil:profile_update' %}" method="post">
+                {% csrf_token %}
+                <div class="edit-profile-form-layout">
+
+                    <div class="avatar-edit-column">
+                        <div class="avatar-container">
+                            <img id="current-avatar-img" src="{% static profile.avatar %}" alt="Current Avatar" class="profile-avatar">
+                            {% if profile.rank %}<img src="{% static 'image/'|add:profile.rank|lower|add:'.svg' %}" alt="Rank" class="rank-badge">{% endif %}
+                        </div>
+                        <button type="button" id="change-avatar-btn" class="btn">Change Avatar</button>
+
+                        <div id="avatar-choices" style="display: none; margin-top: 20px;">
+                            <div class="avatar-options">
+                                <img src="{% static 'image/avatar1.png' %}" data-value="image/avatar1.png" alt="Avatar 1">
+                                <img src="{% static 'image/avatar2.png' %}" data-value="image/avatar2.png" alt="Avatar 2">
+                                <img src="{% static 'image/avatar3.png' %}" data-value="image/avatar3.png" alt="Avatar 3">
+                                <img src="{% static 'image/avatar4.png' %}" data-value="image/avatar4.png" alt="Avatar 4">
+                                <img src="{% static 'image/avatar5.png' %}" data-value="image/avatar5.png" alt="Avatar 5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fields-column">
+                        <div class="form-group">
+                            <label>USERNAME</label>
+                            <input type="text" value="@{{ user.username }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.instagram.id_for_label }}">INSTAGRAM</label>
+                            {{ form.instagram }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.lokasi.id_for_label }}">LOCATION</label>
+                            {{ form.lokasi }}
+                        </div>
+                        
+                        {{ form.avatar.as_hidden }} 
+                        
+                        <button type="submit" class="btn">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const changeAvatarBtn = document.getElementById('change-avatar-btn');
+    const avatarChoicesDiv = document.getElementById('avatar-choices');
+    const avatarOptions = document.querySelectorAll('#avatar-choices .avatar-options img');
+    const currentAvatarImg = document.getElementById('current-avatar-img');
+    const avatarFormField = document.querySelector('input[name="avatar"]');
+
+    changeAvatarBtn.addEventListener('click', () => {
+        const isHidden = avatarChoicesDiv.style.display === 'none';
+        avatarChoicesDiv.style.display = isHidden ? 'block' : 'none';
+    });
+
+    avatarOptions.forEach(avatarImg => {
+        avatarImg.addEventListener('click', () => {
+            avatarOptions.forEach(img => img.classList.remove('selected'));
+            avatarImg.classList.add('selected');
+            
+            const newValue = avatarImg.dataset.value;
+            const newSrc = avatarImg.src;
+
+            avatarFormField.value = newValue;
+            currentAvatarImg.src = newSrc;
+        });
+    });
+
+    document.getElementById('edit-profile-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+
+        fetch(this.action, { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast('Success!', data.message, 'success');
+            } else {
+                showToast('Error!', data.message || 'Update failed.', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Error', 'An unexpected network error occurred.', 'error');
+        });
+    });
+});
+</script>
+{% endblock content %}

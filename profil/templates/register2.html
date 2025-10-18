@@ -1,138 +1,95 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}PlayServe - Register Step 2{% endblock %}
+{% block title %}PlayServe - Complete Profile{% endblock %}
 
 {% block content %}
-    
-    {# Wrapper utama untuk mengatur pemusatan vertikal dan background auth #}
-    <div class="auth-page">
+<div class="auth-page">
+    <div class="auth-container">
+        <h1>COMPLETE YOUR PROFILE</h1>
+        <p>Choose your avatar and set your location.</p>
         
-        <a href="{% url 'main:home' %}" class="logo-auth">
-            <img src="{% static 'image/logo.svg' %}" alt="PlayServe Logo">
-        </a>
-        
-        {# Wrapper form utama, tempat konten terpusat #}
-        <div class="auth-container">
+        <form id="register-form-step2" action="{% url 'profil:register2' %}" method="post">
+            {% csrf_token %}
             
-            <h1 style="margin-top: 20px;">BE PART OF THE GAME!</h1>
-            <p style="margin-bottom: 10px;">Sign up for free and get your racket ready</p>
+            <p style="color: var(--lime-green); font-weight: bold; margin-bottom: 20px;">Choose Your Avatar</p>
             
-            <form id="step2-form">
-                {% csrf_token %}
-                
-                <p class="section-title auth-link-text" style="color: var(--lime-green); font-weight: bold; margin-top: -5px; margin-bottom: 10px;">Choose Your Avatar</p>
-                
-                <div class="avatar-options">
-                    {# Tampilkan pilihan avatar, data-value harus sesuai dengan AVATAR_CHOICES di models.py #}
-                    <img src="{% static 'image/avatar1.png' %}" data-value="static/image/avatar1.png" alt="Avatar 1">
-                    <img src="{% static 'image/avatar2.png' %}" data-value="static/image/avatar2.png" alt="Avatar 2">
-                    <img src="{% static 'image/avatar3.png' %}" data-value="static/image/avatar3.png" alt="Avatar 3">
-                    <img src="{% static 'image/avatar4.png' %}" data-value="static/image/avatar4.png" alt="Avatar 4">
-                    <img src="{% static 'image/avatar5.png' %}" data-value="static/image/avatar5.png" alt="Avatar 5">
-                </div>
-                
-                {# Field tersembunyi untuk menyimpan nilai avatar yang dipilih #}
-                <input type="hidden" id="avatar-input-field" name="avatar" required>
-                
-                {# Menggunakan input text untuk lokasi dan instagram #}
-                <input type="text" id="lokasi" name="lokasi" placeholder="Location" required list="kota-list">
+            <div class="avatar-options">
+                <img src="{% static 'image/avatar1.png' %}" data-value="image/avatar1.png" alt="Avatar 1">
+                <img src="{% static 'image/avatar2.png' %}" data-value="image/avatar2.png" alt="Avatar 2">
+                <img src="{% static 'image/avatar3.png' %}" data-value="image/avatar3.png" alt="Avatar 3">
+                <img src="{% static 'image/avatar4.png' %}" data-value="image/avatar4.png" alt="Avatar 4">
+                <img src="{% static 'image/avatar5.png' %}" data-value="image/avatar5.png" alt="Avatar 5">
+            </div>
+            
+            <input type="hidden" id="avatar-input-field" name="avatar" required>
+            
+            <div class="form-group">
+                <input type="text" name="lokasi" placeholder="Location" required list="kota-list">
                 <datalist id="kota-list">
-                    {# Opsi lokasi harus berasal dari Profile.KOTA_CHOICES #}
                     <option value="Jakarta"></option>
                     <option value="Bogor"></option>
                     <option value="Depok"></option>
                     <option value="Tangerang"></option>
                     <option value="Bekasi"></option>
                 </datalist>
-                
-                <input type="text" id="instagram" name="instagram" placeholder="Instagram" required>
-                
-                <button type="submit" style="margin-top: 15px;">LET'S SERVE!</button>
-            </form>
+            </div>
             
-            <p id="message" class="message"></p>
-        </div>
+            <div class="form-group">
+                <input type="text" name="instagram" placeholder="Instagram (Optional)">
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%;">LET'S SERVE!</button>
+        </form>
     </div>
-    
-    {# --- INLINE CSS UNTUK AVATAR --- #}
-    <style>
-        .avatar-options {
-            display: flex;
-            gap: 40px;
-            margin-top: 10px;
-            margin-bottom: 30px; /* Tambahkan margin bawah agar tidak mepet ke input */
-            justify-content: center;
-        }
-        .avatar-options img {
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            border: 3px solid transparent;
-            border-radius: 50%;
-            transition: border-color 0.3s;
-        }
-        .avatar-options img.selected {
-            border-color: var(--lime-green); /* Menggunakan variabel CSS global */
-        }
-    </style>
+</div>
 
 <script>
-    const avatars = document.querySelectorAll('.avatar-options img');
-    const avatarInput = document.getElementById('avatar-input-field');
+    document.addEventListener('DOMContentLoaded', () => {
+        const avatars = document.querySelectorAll('.avatar-options img');
+        const avatarInput = document.getElementById('avatar-input-field');
+        const form = document.getElementById('register-form-step2');
 
-    avatars.forEach(avatar => {
-        avatar.addEventListener('click', () => {
-            avatars.forEach(img => img.classList.remove('selected'));
-            avatar.classList.add('selected');
-            avatarInput.value = avatar.dataset.value;
+        avatars.forEach(avatar => {
+            avatar.addEventListener('click', () => {
+                avatars.forEach(img => img.classList.remove('selected'));
+                avatar.classList.add('selected');
+                avatarInput.value = avatar.dataset.value;
+            });
         });
-    });
 
-    document.getElementById('step2-form').addEventListener('submit', function(event) {
-        event.preventDefault();
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
 
-        if (!avatarInput.value) {
-            alert('Please select an avatar first.'); // Pesan error sederhana
-            return;
-        }
-
-        const form = event.target;
-        const formData = new FormData(form); // Menggunakan FormData untuk konsistensi dengan views.py
-
-        fetch('{% url "profil:register2" %}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-            },
-            body: formData
-        })
-        .then(response => response.json().then(data => ({ status: response.status, body: data })))
-        .then(({ status, body }) => {
-            const messageElement = document.getElementById('message');
-            
-            if (body.toast_type) {
-                window.showToast(body.toast_type, body.message);
+            if (!avatarInput.value) {
+                showToast('Selection Required', 'Please select an avatar first.', 'error');
+                return;
             }
 
-            if (status === 200 && body.status === 'success') {
-                // Sukses: Redirect ke homepage
-                window.location.href = body.redirect_url; 
-            } else {
-                // Error: Tampilkan pesan error
-                messageElement.textContent = body.message || 'Please correct the errors.';
-                messageElement.classList.remove('success');
-                messageElement.classList.add('error');
-                
-                // Tambahkan logic untuk menampilkan error di bawah field form jika diperlukan
-                console.error('Form errors:', body.errors);
-            }
-        })
-        .catch(error => {
-            const messageElement = document.getElementById('message');
-            messageElement.textContent = 'An unexpected network error occurred.';
-            messageElement.classList.add('error');
-            console.error('Fetch error:', error);
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast('Success!', 'Your profile is complete.', 'success');
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || '/';
+                    }, 1500);
+                } else {
+                    showToast('Error', data.message || 'Please correct the errors.', 'error');
+                }
+            })
+            .catch(error => {
+                showToast('Network Error', 'An unexpected error occurred.', 'error');
+                console.error('Fetch error:', error);
+            });
         });
     });
 </script>

@@ -22,52 +22,34 @@ def register1(request):
     form = RegistrationFormStep1()
     return render(request, 'register1.html', {'form': form})
 
-
 def register2(request):
     if 'registration_data' not in request.session:
         return redirect('profil:register1')
     
-    user_data = request.session['registration_data']
-
     if request.method == 'POST':
         form = RegistrationFormStep2(request.POST)
         if form.is_valid():
-            profile_data = form.cleaned_data
+            user_data = request.session['registration_data']
             
-            username = user_data['username']
-            password = user_data['password']
-            
-            try:
-                user = User.objects.create_user(username=username, password=password)
-            except Exception:
-                return JsonResponse({'status': 'error', 'toast_type': 'error', 'message': 'Registration failed due to a server error.'}, status=500)
-
-            Profile.objects.create(
-                user=user,
-                lokasi=profile_data['lokasi'],
-                instagram=profile_data.get('instagram', ''),
-                avatar=profile_data['avatar']
+            user = User.objects.create_user(
+                username=user_data['username'],
+                password=user_data['password']
             )
-
-            user_auth = authenticate(request, username=username, password=password)
-            if user_auth is not None:
-                login(request, user_auth)
             
-            del request.session['registration_data'] 
+            profile = form.save(commit=False) 
+            profile.user = user
+            profile.save()
+            del request.session['registration_data']
+            login(request, user)
             
             return JsonResponse({
-                'status': 'success', 
-                'toast_type': 'success', 
-                'message': 'Registration successful! Welcome to PlayServe.', 
+                'status': 'success',
+                'message': 'Registration successful! Welcome.',
                 'redirect_url': '/'
             })
         else:
-            errors = dict(form.errors.items())
-            return JsonResponse({'status': 'error', 'errors': errors, 'toast_type': 'error', 'message': 'Please correct the profile details.'}, status=400)
-    
-    form = RegistrationFormStep2()
-    return render(request, 'register2.html', {'form': form, 'user_data': user_data})
-
+            return JsonResponse({'status': 'error', 'message': 'Invalid data provided.', 'errors': form.errors}, status=400)
+    return render(request, 'register2.html')
 
 def login_ajax(request):
     if request.method == 'POST':
@@ -113,4 +95,4 @@ def profile_update_view(request):
     else:
         form = ProfileUpdateForm(instance=request.user.profile)
 
-    return render(request, 'profile_update.html', {'form': form})
+    return render(request, 'profile_update.html', {'form': form, 'profile' : request.user.profile})

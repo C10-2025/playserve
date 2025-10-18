@@ -23,16 +23,9 @@ class RegistrationFormStep1(ModelForm):
         return cd.get('password2')
     
 class RegistrationFormStep2(ModelForm):
-    lokasi = ChoiceField(choices=Profile.KOTA_CHOICES)
-    instagram = CharField(max_length=100, required=False)
-    avatar = ChoiceField(choices=Profile.AVATAR_CHOICES)
-
     class Meta:
         model = Profile
-        fields = ['lokasi', 'instagram', 'avatar'] 
-        
-    def save(self, commit=True):
-        pass
+        fields = ['lokasi', 'instagram', 'avatar']
 
 class ProfileUpdateForm(ModelForm):
     class Meta:

@@ -19,13 +19,13 @@ class Profile(models.Model):
     instagram = models.CharField(max_length=100, blank=True, null=True)
 
     AVATAR_CHOICES = [
-        ('static/image/avatar1.png', 'Avatar 1'),
-        ('static/image/avatar2.png', 'Avatar 2'),
-        ('static/image/avatar3.png', 'Avatar 3'),
-        ('static/image/avatar4.png', 'Avatar 4'),
-        ('static/image/avatar5.png', 'Avatar 5'),
+        ('image/avatar1.png', 'Avatar 1'),
+        ('image/avatar2.png', 'Avatar 2'),
+        ('image/avatar3.png', 'Avatar 3'),
+        ('image/avatar4.png', 'Avatar 4'),
+        ('image/avatar5.png', 'Avatar 5'),
     ]
-    avatar = models.CharField(max_length=100, choices=AVATAR_CHOICES, default='avatars/avatar1.png')
+    avatar = models.CharField(max_length=100, choices=AVATAR_CHOICES, default='image/avatar1.png')
     jumlah_kemenangan = models.PositiveIntegerField(default=0)
 
     @property
@@ -42,5 +42,5 @@ class Profile(models.Model):
         else:
             return "Diamond"
 
-    def _str_(self):
+    def __str__(self):
         return f'{self.user.username} Profile ({self.get_role_display()})'

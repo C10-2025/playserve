@@ -18,16 +18,52 @@
             {% endif %}
         </section>
 
-        <section class="info-section">
-            <h2>YOUR NEXT MATCH AWAITS</h2>
-            <p>Finding a game has never been this easy or this fast. Simply find a player, book the court, and get playing.</p>
+        <section style="padding: 0px 50px;">
+            <div class="content-box">
+                <div class="info-text">
+                    <h2 class="p-wide">YOUR NEXT MATCH AWAITS</h2>
+                    <p class="p-wide">Finding a game has never been this easy or this fast. Simply find a player, book the court, and get playing. Challenge opponents in your area, record your victories, and watch yourself climb the local ranks.</p>
+                </div>
+                
+                <div class="info-visuals">
+                    <img src="{% static 'image/maplocator.svg' %}" alt="Map illustration">
+                    {% if user.is_authenticated %}
+                        <a href="#" class="btn">Book The Court</a>
+                    {% else %}
+                        <a href="{% url 'profil:login' %}" class="btn">Book The Court</a>
+                    {% endif %}
+                </div>
+            </div>
         </section>
 
-        <section class="cta-section">
+        <section style="padding: 85px 50px;">
             <div class="cta-box">
-                <h2>READY TO SERVE?</h2>
-                <p style="margin: 0 auto; max-width: none;">Join thousands of players and find your next match by signing up for free</p>
-                <a href="{% url 'profil:register1' %}" class="btn">SIGN UP FOR FREE</a>
+                {% if user.is_authenticated %}
+                    <section class="connect-section">
+                        <h2>MORE WAYS TO CONNECT</h2>
+                        <p>Connect with the right players, join conversations exclusive to your favorite courts, and discover local groups to keep the rally going, on and off the court.</p>
+                        <div class="features-grid">
+                            <div class="feature-item">
+                                <img src="{% static 'image/locator.svg' %}" alt="Location Pin">
+                                <h3>Court-Based Groups</h3>
+                            </div>
+                            <div class="feature-item">
+                                <img src="{% static 'image/chat.svg' %}" alt="Chat Bubble">
+                                <h3>Members-Only Group Chat</h3>
+                            </div>
+                            <div class="feature-item">
+                                <img src="{% static 'image/verified.svg' %}" alt="Check Mark">
+                                <h3>Admin-Curated</h3>
+                            </div>
+                        </div>
+                        <a href="#" class="btn">Explore Communities</a>
+                    </section>
+
+                {% else %}
+                    <h2 class="p-wide">READY TO SERVE?</h2>
+                    <p class="p-wide">Join thousands of players and find your next match by signing up for free</p>
+                    <a href="{% url 'profil:register1' %}" class="btn">SIGN UP FOR FREE</a>
+                {% endif %}
             </div>
         </section>
     </main>

@@ -823,3 +823,59 @@ main {
     width: 100%;
     margin-top: 10px;
 }
+
+@media (max-width: 992px) {
+    
+    .edit-profile-container {
+        padding: 40px;
+    }
+
+    .edit-profile-form-layout {
+        flex-direction: column;
+        gap: 40px;
+    }
+
+    .avatar-edit-column {
+        flex-basis: auto;
+        width: 100%;
+        gap: 15px;
+    }
+
+    .avatar-edit-column .avatar-container {
+        margin: 0 auto 15px auto;
+    }
+
+    .fields-column {
+        flex-basis: auto;
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+
+    .edit-profile-container {
+        padding: 30px 20px;
+    }
+
+    .edit-profile-container h1 {
+        font-size: 2rem; 
+        margin-bottom: 30px;
+    }
+    
+    .avatar-edit-column .avatar-container {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .avatar-edit-column .rank-badge {
+        width: 40px;
+        height: 40px;
+        bottom: -8px;
+        right: -8px;
+    }
+
+    .fields-column .btn {
+        font-size: 1.1rem;
+        padding: 15px 30px;
+    }
+}

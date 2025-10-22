@@ -19,13 +19,13 @@ class Profile(models.Model):
     instagram = models.CharField(max_length=100, blank=True, null=True)
 
     AVATAR_CHOICES = [
-        ('image/avatar1.png', 'Avatar 1'),
-        ('image/avatar2.png', 'Avatar 2'),
-        ('image/avatar3.png', 'Avatar 3'),
-        ('image/avatar4.png', 'Avatar 4'),
-        ('image/avatar5.png', 'Avatar 5'),
+        ('image/avatar1.svg', 'Avatar 1'),
+        ('image/avatar2.svg', 'Avatar 2'),
+        ('image/avatar3.svg', 'Avatar 3'),
+        ('image/avatar4.svg', 'Avatar 4'),
+        ('image/avatar5.svg', 'Avatar 5'),
     ]
-    avatar = models.CharField(max_length=100, choices=AVATAR_CHOICES, default='image/avatar1.png')
+    avatar = models.CharField(max_length=100, choices=AVATAR_CHOICES, default='image/avatar1.svg')
     jumlah_kemenangan = models.PositiveIntegerField(default=0)
 
     @property

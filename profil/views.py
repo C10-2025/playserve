@@ -114,3 +114,4 @@ def profile_update_view(request):
         form = ProfileUpdateForm(instance=request.user.profile)
 
     return render(request, 'profile_update.html', {'form': form})
+

@@ -10,5 +10,6 @@ class Lapangan(models.Model):
         ('Tangerang', 'Tangerang'),
         ('Bekasi', 'Bekasi'),
     ]
+    thumbnail = models.URLField(blank=True, null=True)
     lokasi = models.CharField(max_length=50, choices=KOTA_CHOICES)
     harga = models.PositiveIntegerField(default=0)

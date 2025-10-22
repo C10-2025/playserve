@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block meta %}
+<title>Add Review</title>
+{% endblock meta %}
+
+{% block content %}
+
+<style>
+/* --- Modal Overlay --- */
+.review-modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* --- Modal Box --- */
+.review-modal {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 400px;
+  padding: 32px 24px;
+  text-align: center;
+  position: relative;
+  border: 2px solid #d6e8c5;
+  font-family: "Poppins", sans-serif;
+}
+
+/* --- Close Button --- */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: #333;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* --- Headings --- */
+.review-modal h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #1a2b4c;
+  text-transform: uppercase;
+}
+
+.review-modal .subtitle {
+  color: #4c5c7c;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+/* --- Star Section --- */
+#star-rating {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.star {
+  background: none;
+  border: none;
+  font-size: 2.2rem;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
+  color: #c8c8c8;
+}
+
+.star.active {
+  color: #b0d235;
+}
+
+.star:hover {
+  transform: scale(1.1);
+}
+
+.star:focus {
+  outline: none;
+}
+
+.tap-text {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 16px;
+}
+
+/* --- Input Fields --- */
+.input-field {
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  margin-bottom: 18px;
+  box-sizing: border-box;
+  resize: none;
+}
+
+/* --- Submit Button --- */
+.submit-btn {
+  width: 100%;
+  background-color: #b0d235;
+  border: none;
+  border-radius: 8px;
+  color: #1a2b4c;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 14px;
+  cursor: pointer;
+  transition: background 0.25s, transform 0.1s;
+}
+
+.submit-btn:hover {
+  background-color: #a2c52e;
+  transform: translateY(-1px);
+}
+
+/* --- Responsive --- */
+@media (max-width: 480px) {
+  .review-modal {
+    width: 95%;
+    padding: 24px 18px;
+  }
+
+  .star {
+    font-size: 2rem;
+  }
+}
+</style>
+
+<div class="review-modal-overlay">
+  <div class="review-modal">
+    <button class="close-btn" onclick="window.history.back()">×</button>
+    <h2>LEAVE A RATING & REVIEW</h2>
+    <p class="subtitle">Share your experience at The Green Courts!</p>
+
+    <form id="add-review-form">
+      {% csrf_token %}
+
+      {% if lapangans %}
+        <label for="lapangan">Court</label>
+        <select name="lapangan" id="lapangan" class="input-field">
+          <option value="">-- Select Court --</option>
+          {% for l in lapangans %}
+            <option value="{{ l.id }}">{{ l.name|default:l.title|default:l }}</option>
+          {% endfor %}
+        </select>
+      {% elif lapangan %}
+        <input type="hidden" name="lapangan" value="{{ lapangan.id }}">
+        <p><strong>{{ lapangan.name|default:lapangan.title|default:lapangan }}</strong></p>
+      {% endif %}
+
+      <div class="star-section">
+        <div id="star-rating" role="radiogroup" aria-label="Rating">
+          <button type="button" class="star" data-value="1">★</button>
+          <button type="button" class="star" data-value="2">★</button>
+          <button type="button" class="star" data-value="3">★</button>
+          <button type="button" class="star" data-value="4">★</button>
+          <button type="button" class="star" data-value="5">★</button>
+        </div>
+        <p class="tap-text">Tap to rate</p>
+      </div>
+
+      <textarea id="komentar" name="komentar" rows="4"
+        placeholder="Write your comments here... (optional)" class="input-field"></textarea>
+
+      <input type="hidden" name="rating" id="rating" value="0">
+
+      <button type="submit" id="submit-btn" class="submit-btn">SUBMIT REVIEW</button>
+    </form>
+  </div>
+</div>
+
+<script src="{% static 'js/toast.js' %}"></script>
+<script>
+(function(){
+  const stars = document.querySelectorAll('#star-rating .star');
+  const ratingInput = document.getElementById('rating');
+
+  function setStars(value){
+    stars.forEach(s => {
+      const v = parseInt(s.getAttribute('data-value'));
+      s.classList.toggle('active', v <= value);
+    });
+    ratingInput.value = value;
+  }
+
+  stars.forEach(s => {
+    s.addEventListener('click', () => setStars(parseInt(s.dataset.value)));
+    s.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setStars(parseInt(s.dataset.value)); }
+    });
+  });
+
+  // CSRF helper
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  const form = document.getElementById('add-review-form');
+  const submitBtn = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    const formData = new FormData(form);
+    const csrftoken = getCookie('csrftoken');
+
+    try {
+      const resp = await fetch(window.location.href, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken },
+        body: formData,
+        credentials: 'same-origin'
+      });
+
+      if (resp.ok) {
+        let data;
+        try { data = await resp.json(); } catch (err) { data = null; }
+        const msg = data && data.message ? data.message : 'Review submitted successfully.';
+        showToast('Success', msg, 'success');
+        form.reset();
+        setStars(0);
+      } else {
+        let errText = 'Failed to submit review.';
+        try { const j = await resp.json(); if (j && j.error) errText = j.error; } catch(err){}
+        showToast('Error', errText, 'error');
+      }
+    } catch (err) {
+      showToast('Error', 'Network error. Please try again.', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'SUBMIT REVIEW';
+    }
+  });
+})();
+</script>
+
+{% endblock %}

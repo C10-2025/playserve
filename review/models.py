@@ -1,7 +1,7 @@
 from django.db import models
+from main.models import Lapangan
 
-# Create your models here.
-""" class Review(models.Model):
+class Review(models.Model):
     lapangan = models.ForeignKey(Lapangan, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField(default=0)
-    komentar = models.TextField() """
+    komentar = models.TextField()

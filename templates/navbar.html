@@ -6,15 +6,15 @@
 
     <div class="nav-links">
         {% if user.is_authenticated %}
-            <a href="#">Match Making</a>
-            <a href="#">Book Courts</a>
-            <a href="#">Community</a>
-            <a href="#">Court Reviews</a>
+            <a href="{% url 'matchmaking:dashboard' %}" class="italic">Match Making</a>
+            <a href="#" class="italic">Book Courts</a>
+            <a href="#" class="italic">Community</a>
+            <a href="#" class="italic">Court Reviews</a>
         {% else %}
-            <a href="{% url 'profil:login' %}">Match Making</a>
-            <a href="{% url 'profil:login' %}">Book Courts</a>
-            <a href="{% url 'profil:login' %}">Community</a>
-            <a href="{% url 'profil:login' %}">Court Reviews</a>
+            <a href="{% url 'profil:login' %}" class="italic">Match Making</a>
+            <a href="{% url 'profil:login' %}" class="italic">Book Courts</a>
+            <a href="{% url 'profil:login' %}" class="italic">Community</a>
+            <a href="{% url 'profil:login' %}" class="italic">Court Reviews</a>
         {% endif %}
     </div>
 
@@ -57,7 +57,7 @@
             </div>
         </a>
         <hr class="mobile-menu-divider">
-        <a href="#">Match Making</a>
+        <a href="{% url 'matchmaking:dashboard' %}">Match Making</a>
         <a href="#">Book Courts</a>
         <a href="#">Community</a>
         <a href="#">Court Reviews</a>

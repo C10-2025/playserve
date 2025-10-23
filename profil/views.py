@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from .forms import RegistrationFormStep1, RegistrationFormStep2, ProfileUpdateForm
 from .models import Profile
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
 
 def register1(request):
     if request.method == 'POST':
@@ -96,3 +98,36 @@ def profile_update_view(request):
         form = ProfileUpdateForm(instance=request.user.profile)
 
     return render(request, 'profile_update.html', {'form': form, 'profile' : request.user.profile})
+
+def is_admin(user):
+    if not user.is_authenticated:
+        return False
+    return user.is_superuser or (hasattr(user, 'profile') and user.profile.role == Profile.Role.ADMIN)
+
+@login_required
+@user_passes_test(is_admin, login_url='/')
+def manage_users_view(request):
+    query = request.GET.get('q', '')
+    profiles_list = Profile.objects.exclude(user=request.user).select_related('user').order_by('user__username')
+    if query:
+        profiles_list = profiles_list.filter(user__username__icontains=query)
+    context = {
+        'profiles': profiles_list,
+        'search_query': query,
+    }
+    return render(request, 'admin_profile.html', context)
+
+@login_required
+@user_passes_test(is_admin, login_url='/')
+def delete_user_view(request, user_id):
+    if request.method == 'POST':
+        user_to_delete = get_object_or_404(User, id=user_id)
+        if user_to_delete == request.user:
+            return JsonResponse({'status': 'error', 'message': 'Cannot delete yourself.'}, status=403)
+        try:
+            username = user_to_delete.username
+            user_to_delete.delete()
+            return JsonResponse({'status': 'success', 'message': f'User {username} deleted successfully.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)

@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Management - Admin{% endblock %}
+
+{% block styles %}
+<style>
+.admin-page-container {
+    padding: 40px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.admin-page-container h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+}
+.search-container {
+    position: relative;
+    margin-bottom: 40px;
+}
+.search-input {
+    width: 100%;
+    padding: 15px 50px 15px 20px;
+    border-radius: 999px;
+    border: 3px solid var(--navbar-blue);
+    font-size: 1.1rem;
+    color: var(--dark-text);
+    box-sizing: border-box;
+}
+.search-icon {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--navbar-blue);
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.profile-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--navbar-blue);
+    padding: 20px 30px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+.profile-card-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.profile-card-avatar {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+.profile-card-avatar img.avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid var(--lime-green);
+}
+.profile-card-avatar img.rank-badge {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    bottom: -5px;
+    right: -5px;
+}
+.profile-card-text span {
+    display: block;
+}
+.profile-card-text .username {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+.profile-card-text .instagram {
+    font-size: 0.9rem;
+    color: var(--off-white);
+}
+.delete-profile-btn {
+    background-color: var(--lime-green);
+    color: var(--dark-text);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+    {% include 'navbar.html' %}
+
+    <div class="admin-page-container">
+        <h1>USER MANAGEMENT</h1>
+
+        <form method="get" class="search-container">
+            <input type="text" name="q" placeholder="..." value="{{ search_query|default:'' }}" class="search-input">
+            <button type="submit" class="search-icon">🔍</button>
+        </form>
+
+        <div class="profiles-list">
+            {% for profile_item in profiles %}
+            <div class="profile-card" id="profile-card-{{ profile_item.user.id }}">
+                <div class="profile-card-info">
+                    <div class="profile-card-avatar">
+                        <img src="{% static profile_item.avatar %}" alt="Avatar" class="avatar">
+                        {% if profile_item.rank %}
+                            <img src="{% static 'image/'|add:profile_item.rank|lower|add:'.svg' %}" alt="Rank" class="rank-badge">
+                        {% endif %}
+                    </div>
+                    <div class="profile-card-text">
+                        <span class="username">{{ profile_item.user.username }}</span>
+                        {% if profile_item.instagram %}
+                            <span class="instagram">@{{ profile_item.instagram }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <button class="delete-profile-btn"
+                        data-userid="{{ profile_item.user.id }}"
+                        data-username="{{ profile_item.user.username }}">
+                    Delete Profile
+                </button>
+            </div>
+            {% empty %}
+                <p style="text-align: center; color: var(--off-white);">No users found{% if search_query %} matching "{{ search_query }}"{% endif %}.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const deleteButtons = document.querySelectorAll('.delete-profile-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const userId = this.dataset.userid;
+                const username = this.dataset.username;
+                showDeleteConfirmation(userId, username);
+            });
+        });
+    });
+
+    function showDeleteConfirmation(userId, username) {
+        if (!confirm(`Are you sure you want to delete user "${username}"? This cannot be undone.`)) {
+            return;
+        }
+        proceedDelete(userId, username);
+    }
+
+    function proceedDelete(userId, username) {
+        const url = `/profile/delete-user/${userId}/`;
+        const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]')?.value;
+
+        if (!csrfToken) {
+             showToast('Error', 'Security token missing. Please refresh.', 'error');
+             return;
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.showToast('Success', data.message, 'success');
+                const card = document.getElementById(`profile-card-${userId}`);
+                if (card) card.remove();
+            } else {
+                window.showToast('Error', data.message, 'error');
+            }
+        })
+        .catch(error => {
+            window.showToast('Network Error', 'Could not delete user.', 'error');
+        });
+    }
+</script>
+{% endblock content %}

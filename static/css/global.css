@@ -19,34 +19,164 @@ a {
     color: inherit;
 }
 
-h1 {
-    font-size: 5rem;
+.background-auth {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
+
+    background-color: var(--background-blue);
+    background-image: url('../image/background.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.logo-auth {
+    position: absolute;
+    top: 20px;
+    left: 50px;
+}
+
+.logo-auth img {
+    width: 150px;
+    height: auto;
+}
+
+.auth-container {
+    padding: 60px 60px 60px 60px;
+    text-align: center;
+}
+
+
+.auth-container h1 {
+    font-size: 4rem;
     font-weight: 900;
     line-height: 1.1;
     text-transform: uppercase;
-    margin-bottom: 20px;
+    text-align: center;
 }
 
-h2 {
-    font-size: 3.5rem;
-    font-weight: 800;
-    margin-bottom: 0;
-    margin-bottom: 20px;
-}
-
-p {
+.auth-container p {
     font-size: 1.55rem;
     line-height: 1.6;
     color: var(--off-white);
-    max-width: 600px;
-    margin-top: 0;
-    margin-bottom: 40px;
-    
+    margin-bottom: 30px;
+    text-align: center;
 }
 
-.p-wide {
-    max-width: 900px;
-    padding-left: 60px;
+.auth-container input {
+    width: 100%; 
+    max-width: 600px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    
+    border: none;
+    border-radius: 8px;
+    background-color: var(--white); 
+    color: var(--dark-text);
+    font-size: 1.4rem;
+    
+    outline: none;
+    box-sizing: border-box;
+    display: block; 
+    margin: 0 auto 20px auto; 
+}
+
+.auth-container button {
+    width: 100%; 
+    max-width: 600px;
+    padding: 15px;
+    background-color: var(--lime-green); 
+    color: var(--dark-text);
+    font-size: 1.5rem; 
+    font-weight: 800; 
+    border: none;
+    border-radius: 8px;
+    text-transform: uppercase;
+    margin: 20px auto 30px auto;
+    display: block;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.auth-link-text {
+    font-size: 1.2rem; 
+    margin-top: 0; 
+    color: var(--white); 
+}
+
+.auth-link-text a {
+    color: var(--lime-green);
+    font-weight: bold;
+}
+
+.background-profile {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: calc(100vh - 100px);
+    box-sizing: border-box;
+
+    background-color: var(--background-blue);
+    background-image: url('../image/background.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.edit-profile-container {
+    background-color: var(--navbar-blue);
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 50px 60px;
+    border-radius: 20px;
+}
+
+.edit-profile-container h1 {
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.edit-profile-form-layout {
+    display: flex;
+    gap: 60px;
+    align-items: flex-start;
+}
+
+.upper-main {
+    text-align: left;
+    background-color: var(--navbar-blue);
+    background-image: url('../image/background_landing.svg');
+    background-size: cover;
+    background-position: center 50%;
+    padding: 150px 80px 100px 80px;
+}
+
+.upper-main h1{
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.upper-main p{
+    font-size: 1.55rem;
+    line-height: 1.6;
+    color: var(--off-white);
+    margin-bottom: 30px;
+    text-align: left;
+    max-width: 600px;
 }
 
 .nav-links a {
@@ -157,15 +287,6 @@ p {
 .btn:hover {
     transform: scale(1.05);
     filter: brightness(1.1);
-}
-
-.hero {
-    text-align: left;
-    background-color: var(--navbar-blue);
-    background-image: url('../image/background_landing.svg');
-    background-size: cover;
-    background-position: center 50%;
-    padding: 150px 80px 100px 80px;
 }
 
 .info-section {
@@ -388,104 +509,6 @@ p {
 main {
     width: 100%;
     min-height: 100vh;
-}
-
-.auth-page {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    
-    background-color: var(--background-blue); 
-    background-image: url('../image/background.svg'); 
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-}
-
-.auth-container {
-    padding: 30px 60px 60px 60px;
-    text-align: center;
-    max-width: 100%;
-    width: 90%;
-    z-index: 5;
-}
-
-.logo-auth {
-    position: absolute;
-    top: 20px;
-    left: 50px;
-    z-index: 10;
-}
-.logo-auth img {
-    width: 150px;
-    height: auto;
-}
-
-.auth-container h1 {
-    font-size: 3.5rem; 
-    font-weight: 900;
-    line-height: 1.1;
-    text-transform: uppercase;
-    margin-bottom: 5px; 
-}
-.auth-container p {
-    font-size: 1.4rem;
-    color: var(--off-white);
-    margin-top: 0;
-    margin-bottom: 30px; 
-    font-weight: 500;
-    max-width: none;
-}
-
-.auth-container input {
-    width: 100%; 
-    max-width: 600px;
-    padding: 18px 20px;
-    margin-bottom: 20px;
-    
-    border: none;
-    border-radius: 8px;
-    background-color: var(--white); 
-    color: var(--dark-text);
-    
-    font-size: 1.4rem;
-    
-    outline: none;
-    box-sizing: border-box;
-    display: block; 
-    margin: 0 auto 20px auto; 
-    
-    box-shadow: 0 0 0 2px var(--background-blue);
-}
-
-.auth-container button {
-    width: 100%; 
-    max-width: 600px;
-    padding: 15px;
-    background-color: var(--lime-green); 
-    color: var(--dark-text);
-    font-size: 1.5rem; 
-    font-weight: 800; 
-    border: none;
-    border-radius: 8px;
-    text-transform: uppercase;
-    margin: 20px auto 30px auto;
-    display: block;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.auth-link-text {
-    font-size: 1.2rem; 
-    margin-top: 0; 
-    color: var(--white); 
-}
-
-.auth-link-text a {
-    color: var(--lime-green);
-    font-weight: bold;
 }
 
 .content-box {
@@ -733,20 +756,6 @@ main {
     color: var(--dark-text);
     font-size: 1.1rem;
     box-sizing: border-box;
-}
-
-.edit-profile-container {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 40px 90px;
-    background-color: var(--navbar-blue);
-    background-size: cover;
-    background-position: center;
-    border-radius: 20px;
-}
-
-.edit-profile-container h1 {
-    text-align: center;
 }
 
 .edit-profile-form-layout {

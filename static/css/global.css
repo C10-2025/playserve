@@ -926,3 +926,9 @@ main {
     }
   }
   
+.matchmaking-wrapper {
+    background-image: url('../image/background_matchmaking.svg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center 50%;
+}

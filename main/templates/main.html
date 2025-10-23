@@ -12,7 +12,7 @@
             <h1>FIND YOUR RIVAL.<br>ACE THE COURT.</h1>
             <p>The first gamified platform for tennis players in Indonesia. Climb the ranks, find your perfect match, and easily book the best courts.</p>
             {% if user.is_authenticated %}
-                <a href="#" class="btn">Find Your Match Now</a>
+                <a href="{% url 'matchmaking:dashboard' %}" class="btn">Find Your Match Now</a>
             {% else %}
                 <a href="{% url 'profil:login' %}" class="btn">Find Your Match Now</a>
             {% endif %}

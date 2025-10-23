@@ -25,8 +25,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('profile/', include('profil.urls')),
     path('', include('main.urls')),
-    path('community/', include('community.urls')),
-
 ]
 
 if settings.DEBUG:

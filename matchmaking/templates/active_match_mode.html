@@ -1,0 +1,86 @@
+<div class="active-match-container w-full max-w-4xl mx-auto py-4">
+    {% load static %}
+    
+    {% if opponent_profile %}
+        
+        <div class="text-center mb-8">
+            <h2 class="text-5xl font-extrabold text-white uppercase">YOUR OPPONENT</h2>
+        </div>
+
+        <div class="active-match-container w-full max-w-lg mx-auto py-4">
+            {% load static %}
+            
+            {% if opponent_profile %}
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg mb-8">
+
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        
+                        <div class="relative flex justify-center items-center">
+                        <img src="{% static opponent_profile.avatar %}" 
+                            alt="Avatar Lawan" 
+                            class="match-avatar w-24 h-24 rounded-full object-cover border-4" 
+                            style="width: 120px; height: 120px; border-color: var(--lime-green);"> 
+                        
+                        {% if opponent_profile.rank %}
+                            {% with rank_file=opponent_profile.rank|lower|add:'.svg' %}
+                            <img src="{% static 'image/'|add:rank_file %}" alt="{{ opponent_profile.rank }} Rank" 
+                                class="rank-badge absolute w-14 h-14 bottom-0 right-0" 
+                                style="bottom: -8px; right: -8px;">
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+                        
+                        <h4 class="text-3xl font-extrabold text-gray-800" style="color: var(--dark-text);">
+                            {{ opponent.username }}
+                        </h4>
+                        
+                        <p class="text-xl text-gray-500 mb-2 hover:underline">
+                            {% if opponent_profile.instagram %}
+                                <a href="https://instagram.com/{{ opponent_profile.instagram }}" 
+                                target="_blank" >
+                                    @{{ opponent_profile.instagram }}
+                                </a>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+
+                    </div>
+                    
+                    
+                <div class="grid grid-cols-2 gap-4 w-full max-w-md mx-auto mt-8">
+                    
+                    <button class="btn btn-session-action font-bold py-3 text-lg rounded-lg transition duration-150" 
+                    style="background-color: var(--lime-green); color: var(--dark-text);"
+                    data-session-id="{{ session.id }}" 
+                    data-action="WIN">
+                    WIN
+                    </button>
+                    
+                    <button class="btn btn-session-action font-bold py-3 text-lg rounded-lg transition duration-150 hover:brightness-90"
+                            style="background-color: var(--dark-text); color: white; border: 2px solid var(--dark-text);"
+                            data-session-id="{{ session.id }}"
+                            data-action="LOSE">
+                        LOSE
+                    </button>
+                        
+                    <button class="btn btn-session-action bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 text-lg rounded-lg transition duration-150 col-span-2 mt-2" 
+                        style="background-color: white; color: var(--lime-green); border: 2px solid var(--lime-green);" 
+                        data-session-id="{{ session.id }}" 
+                        data-action="CANCEL">
+                        CANCEL
+                    </button>
+                </div>
+                
+                {% else %}
+                <div class="alert alert-danger bg-white p-4 rounded-lg shadow">Profile not found.</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="alert alert-danger bg-white p-4 rounded-lg shadow">Profile not found.</div>
+        {% endif %}
+    </div>
+</div>

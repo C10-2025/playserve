@@ -932,3 +932,105 @@ main {
     background-size: cover;
     background-position: center 50%;
 }
+.bgcommunity {
+    text-align: center;
+    background-color: var(--navbar-blue);
+    background-image: url('../image/bgcommunity.svg');
+    background-size: cover;
+    background-position: center 50%;
+    padding: 150px 80px 180px 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  
+  .bgcommunity::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 160px;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(8, 36, 89, 0) 0%,
+      rgba(8, 36, 89, 0.45) 55%,
+      var(--background-blue) 100%
+    );
+  }
+  
+  .bgcommunity > .max-w-6xl {
+    margin: 0 auto;
+  }
+  
+  .bgcommunity h1 {
+    font-size: 5rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  
+  .bgcommunity p.subtitle {
+    font-size: 1.25rem;
+    line-height: 1.55;
+    margin-bottom: 24px;
+    color: var(--off-white);
+  }
+  
+  .bgcommunity .btn-hero {
+    margin-top: 28px; /* tambahin jarak vertikal */
+    padding: 16px 36px;
+    font-size: 1.25rem;
+    border-radius: 12px;
+    background-color: var(--lime-green);
+    color: var(--dark-text);
+    border-color: var(--lime-green);
+    box-shadow: 0 6px 14px rgba(193, 215, 82, 0.35);
+    transition: all 0.25s ease;
+  }
+  
+  .bgcommunity .btn-hero:hover {
+    transform: scale(1.05);
+    filter: brightness(1.05);
+  }
+  
+  .community-panel {
+    margin-top: -60px;
+    background-color: rgba(8, 36, 89, 0.85);
+    backdrop-filter: blur(4px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    padding: 3rem;
+    transition: all 0.3s ease;
+  }
+  
+  .community-panel:hover {
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+  }
+  
+  @media (max-width: 768px) {
+    .bgcommunity {
+      padding: 120px 30px 150px 30px;
+    }
+    .bgcommunity::after {
+      height: 130px;
+    }
+    .community-panel {
+      margin-top: -40px;
+      padding: 2rem;
+    }
+    .bgcommunity h1 {
+      font-size: 3rem;
+    }
+    .bgcommunity p.subtitle {
+      font-size: 1.1rem;
+    }
+    .bgcommunity .btn-hero {
+      font-size: 1.1rem;
+      padding: 14px 28px;
+    }
+  }
+  

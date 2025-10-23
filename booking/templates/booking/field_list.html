@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block content %}
 {% include 'navbar.html' %}
@@ -118,7 +119,7 @@
 
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <p class="text-2xl font-bold text-green-600">Rp {{ field.price_per_hour|floatformat:0 }}</p>
+                        <p class="text-2xl font-bold text-green-600">Rp {{ field.price_per_hour|floatformat:0|intcomma }}</p>
                         <p class="text-xs text-gray-500">per hour</p>
                     </div>
                 </div>

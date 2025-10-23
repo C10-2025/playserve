@@ -20,6 +20,7 @@
 
     <div class="nav-buttons">
         {% if user.is_authenticated %}
+            <a href="{% url 'booking:my_bookings' %}" class="btn btn-outline" title="My Bookings">📅 My Bookings</a>
             <a href="{% url 'profil:profile_update' %}" class="user-profile-link">
                 <div class="profile-info">
                     <span class="profile-username">{{ user.username }}</span>
@@ -57,6 +58,7 @@
             </div>
         </a>
         <hr class="mobile-menu-divider">
+        <a href="{% url 'booking:my_bookings' %}">📅 My Bookings</a>
         <a href="#">Match Making</a>
         <a href="{% url 'booking:field_list' %}">Book Courts</a>
         <a href="#">Community</a>

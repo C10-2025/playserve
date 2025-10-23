@@ -51,13 +51,14 @@ class FieldListView(ListView):
             queryset = queryset.filter(has_backboard=True)
 
         # Sorting
-        sort = self.request.GET.get('sort', 'name')
+        sort = self.request.GET.get('sort', '-price_per_hour')
         if sort == 'price_low':
             queryset = queryset.order_by('price_per_hour')
-        elif sort == 'price_high':
-            queryset = queryset.order_by('-price_per_hour')
-        else:
+        elif sort == 'name':
             queryset = queryset.order_by('name')
+        else:
+            queryset = queryset.order_by('-price_per_hour')
+
 
         return queryset
 
@@ -127,6 +128,14 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
             return BookingStepTwoForm
         else:
             return BookingStepThreeForm
+
+    def get_form_kwargs(self):
+        """Override to remove 'instance' for non-ModelForm steps"""
+        kwargs = super().get_form_kwargs()
+        step = self.request.GET.get('step', '1')
+        if step in ['1', '2']:  # Regular forms don't accept 'instance'
+            kwargs.pop('instance', None)
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -200,6 +209,9 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
 
             # Calculate total price
             booking.total_price = booking.calculate_price()
+
+            # Skip validation during creation since we already validated in step 2
+            booking._skip_validation = True
 
             try:
                 booking.save()

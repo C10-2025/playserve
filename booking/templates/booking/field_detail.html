@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block content %}
 {% include 'navbar.html' %}
 
 <div class="container mx-auto px-4 py-8">
     <!-- Back Button -->
-    <a href="{% url 'booking:field_list' %}" class="text-green-600 hover:underline mb-4 inline-block">
+    <a href="{% url 'booking:field_list' %}" class="text-white hover:underline mb-4 inline-block">
         ← Back to Courts
     </a>
 
@@ -27,44 +28,47 @@
             </div>
 
             <!-- Court Name and Location -->
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">{{ field.name }}</h1>
-            <p class="text-gray-600 mb-4 flex items-center">
-                <span class="mr-2">📍</span>
-                {{ field.address }}, {{ field.city }}
-            </p>
+            <h1 class="text-4xl font-bold text-white mb-2">{{ field.name }}</h1>
+            <div class="text-sm text-white mb-4 flex items-center flex-wrap gap-2">
+                <span>📍</span>
+                <span>{{ field.address }}, {{ field.city }}</span>
 
-            {% if field.latitude and field.longitude %}
-            <a href="https://www.google.com/maps?q={{ field.latitude }},{{ field.longitude }}"
-               target="_blank"
-               class="text-green-600 hover:underline text-sm mb-6 inline-block">
-                📍 View on Google Maps
-            </a>
-            {% endif %}
+                {% if field.latitude and field.longitude %}
+                    <span class="opacity-50">•</span>
+                    <a
+                    href="https://www.google.com/maps?q={{ field.latitude }},{{ field.longitude }}"
+                    target="_blank"
+                    class="text-green-600 hover:underline"
+                    >
+                    View on Google Maps
+                    </a>
+                {% endif %}
+            </div>
 
             <!-- Court Details -->
             <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-2xl font-bold mb-4">Court Details</h2>
+                <!-- <h2 class="text-2xl font-bold  text-gray-600 mb-4">Court Details</h2> -->
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <p class="text-gray-600 text-sm">Number of Courts</p>
-                        <p class="font-semibold">{{ field.number_of_courts }} court{{ field.number_of_courts|pluralize }}</p>
+                        <p class="font-semibold text-gray-600">{{ field.number_of_courts }} court{{ field.number_of_courts|pluralize }}</p>
                     </div>
                     <div>
                         <p class="text-gray-600 text-sm">Court Surface</p>
-                        <p class="font-semibold">{{ field.get_court_surface_display }}</p>
+                        <p class="font-semibold text-gray-600">{{ field.get_court_surface_display }}</p>
                     </div>
                     <div>
                         <p class="text-gray-600 text-sm">Night Play (Lights)</p>
-                        <p class="font-semibold">{% if field.has_lights %}✅ Available{% else %}❌ Not Available{% endif %}</p>
+                        <p class="font-semibold text-gray-600">{% if field.has_lights %}✅ Available{% else %}❌ Not Available{% endif %}</p>
                     </div>
                     <div>
                         <p class="text-gray-600 text-sm">Practice Wall</p>
-                        <p class="font-semibold">{% if field.has_backboard %}✅ Available{% else %}❌ Not Available{% endif %}</p>
+                        <p class="font-semibold text-gray-600">{% if field.has_backboard %}✅ Available{% else %}❌ Not Available{% endif %}</p>
                     </div>
                     <div>
                         <p class="text-gray-600 text-sm">Operating Hours</p>
-                        <p class="font-semibold">{{ field.opening_time|time:"H:i" }} - {{ field.closing_time|time:"H:i" }}</p>
+                        <p class="font-semibold text-gray-600">{{ field.opening_time|time:"H:i" }} - {{ field.closing_time|time:"H:i" }}</p>
                     </div>
                 </div>
 
@@ -93,13 +97,13 @@
 
             <!-- Availability Preview -->
             <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-2xl font-bold mb-4">Availability (Next 14 Days)</h2>
+                <h2 class="text-2xl font-bold mb-4  text-gray-600">Availability (Next 14 Days)</h2>
 
                 <div class="grid grid-cols-7 gap-2">
                     {% for day in availability_calendar %}
                     <div class="text-center">
                         <p class="text-xs text-gray-600 mb-1">{{ day.date|date:"D" }}</p>
-                        <p class="text-sm font-semibold mb-2">{{ day.date|date:"d" }}</p>
+                        <p class="text-sm text-gray-600 font-semibold mb-2">{{ day.date|date:"d" }}</p>
 
                         {% if day.status == 'available' %}
                         <div class="w-10 h-10 mx-auto bg-green-500 rounded-full flex items-center justify-center">
@@ -123,12 +127,17 @@
             </div>
         </div>
 
+
+
+
         <!-- Sidebar - Booking Card -->
         <div class="lg:col-span-1">
             <div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
                 <div class="text-center mb-6">
-                    <p class="text-4xl font-bold text-green-600">Rp {{ field.price_per_hour|floatformat:0 }}</p>
-                    <p class="text-gray-600">per hour</p>
+                    <p class="text-4xl font-bold text-green-600 inline-flex items-baseline gap-2">
+                        Rp {{ field.price_per_hour|floatformat:0|intcomma }}
+                        <span class="text-base font-normal text-gray-600">per hour</span>
+                    </p>
                 </div>
 
                 {% if user.is_authenticated %}
@@ -143,20 +152,20 @@
                 </a>
                 {% endif %}
 
-                <div class="mt-6 space-y-2 text-sm text-gray-600">
-                    <p class="flex items-start">
+                <!-- <div class="mt-6 space-y-2 text-sm text-gray-600">
+                    <p class="flex items-start text-gray-900">
                         <span class="mr-2">✓</span>
                         Instant booking confirmation
                     </p>
-                    <p class="flex items-start">
+                    <p class="flex items-start text-gray-900">
                         <span class="mr-2">✓</span>
                         Easy QRIS payment
                     </p>
-                    <p class="flex items-start">
+                    <p class="flex items-start text-gray-900">
                         <span class="mr-2">✓</span>
                         Free cancellation (24h notice)
                     </p>
-                </div>
+                </div> -->
 
                 <!-- Contact Info -->
                 {% if field.owner_contact %}

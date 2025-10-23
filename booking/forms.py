@@ -8,7 +8,7 @@ class BookingStepOneForm(forms.Form):
         max_length=100,
         label="Full Name",
         widget=forms.TextInput(attrs={
-            'class': 'w-full border rounded px-3 py-2',
+            'class': 'w-full border rounded px-3 py-2 text-gray-600',
             'placeholder': 'Your full name'
         })
     )
@@ -17,7 +17,7 @@ class BookingStepOneForm(forms.Form):
         max_length=20,
         label="Phone Number",
         widget=forms.TextInput(attrs={
-            'class': 'w-full border rounded px-3 py-2',
+            'class': 'w-full border rounded px-3 py-2 text-gray-600',
             'placeholder': '+62 812-3456-7890'
         })
     )
@@ -26,7 +26,7 @@ class BookingStepOneForm(forms.Form):
         required=False,
         label="Email (optional)",
         widget=forms.EmailInput(attrs={
-            'class': 'w-full border rounded px-3 py-2',
+            'class': 'w-full border rounded px-3 py-2 text-black',
             'placeholder': 'your@email.com'
         })
     )
@@ -38,7 +38,7 @@ class BookingStepTwoForm(forms.Form):
         label="Select Date",
         widget=forms.DateInput(attrs={
             'type': 'date',
-            'class': 'w-full border rounded px-3 py-2',
+            'class': 'w-full border rounded px-3 py-2 text-gray-600',
             'min': datetime.now().strftime('%Y-%m-%d')
         })
     )
@@ -47,7 +47,7 @@ class BookingStepTwoForm(forms.Form):
         label="Start Time",
         widget=forms.TimeInput(attrs={
             'type': 'time',
-            'class': 'w-full border rounded px-3 py-2'
+            'class': 'w-full border rounded px-3 py-2 text-gray-600'
         })
     )
 
@@ -73,7 +73,7 @@ class BookingStepTwoForm(forms.Form):
         required=False,
         label="Notes (optional)",
         widget=forms.Textarea(attrs={
-            'class': 'w-full border rounded px-3 py-2',
+            'class': 'w-full border rounded px-3 py-2 text-gray-600',
             'rows': 3,
             'placeholder': 'Any special requests...'
         })

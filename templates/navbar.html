@@ -7,7 +7,7 @@
     <div class="nav-links">
         {% if user.is_authenticated %}
             <a href="#">Match Making</a>
-            <a href="#">Book Courts</a>
+            <a href="{% url 'booking:field_list' %}">Book Courts</a>
             <a href="#">Community</a>
             <a href="#">Court Reviews</a>
         {% else %}
@@ -58,7 +58,7 @@
         </a>
         <hr class="mobile-menu-divider">
         <a href="#">Match Making</a>
-        <a href="#">Book Courts</a>
+        <a href="{% url 'booking:field_list' %}">Book Courts</a>
         <a href="#">Community</a>
         <a href="#">Court Reviews</a>
         <a href="{% url 'profil:logout' %}" class="btn">Logout</a>

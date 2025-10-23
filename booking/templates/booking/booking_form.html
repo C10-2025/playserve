@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Progress Indicator -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex-1 text-center {% if step == '1' %}text-green-600 font-bold{% endif %}">
+                <div class="w-10 h-10 mx-auto rounded-full border-2 {% if step == '1' %}bg-green-600 text-white border-green-600{% else %}border-gray-300{% endif %} flex items-center justify-center mb-2">
+                    1
+                </div>
+                <p class="text-sm">Your Info</p>
+            </div>
+            <div class="flex-1 border-t-2 border-gray-300 mx-4 mt-5"></div>
+            <div class="flex-1 text-center {% if step == '2' %}text-green-600 font-bold{% endif %}">
+                <div class="w-10 h-10 mx-auto rounded-full border-2 {% if step == '2' %}bg-green-600 text-white border-green-600{% else %}border-gray-300{% endif %} flex items-center justify-center mb-2">
+                    2
+                </div>
+                <p class="text-sm">Date & Time</p>
+            </div>
+            <div class="flex-1 border-t-2 border-gray-300 mx-4 mt-5"></div>
+            <div class="flex-1 text-center {% if step == '3' %}text-green-600 font-bold{% endif %}">
+                <div class="w-10 h-10 mx-auto rounded-full border-2 {% if step == '3' %}bg-green-600 text-white border-green-600{% else %}border-gray-300{% endif %} flex items-center justify-center mb-2">
+                    3
+                </div>
+                <p class="text-sm">Payment</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Court Info Header -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h2 class="text-xl font-bold text-gray-800">{{ field.name }}</h2>
+        <p class="text-gray-600 text-sm">{{ field.city }} • Rp {{ field.price_per_hour|floatformat:0 }}/hour</p>
+    </div>
+
+    <!-- Form Content -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="post" enctype="multipart/form-data" id="booking-form">
+            {% csrf_token %}
+
+            {% if step == '1' %}
+            <!-- Step 1: Identity & Contact -->
+            <h2 class="text-2xl font-bold mb-4">Your Information</h2>
+            <p class="text-gray-600 mb-6">Please provide your contact details for the booking.</p>
+
+            {{ form.as_p }}
+
+            <div class="mt-6">
+                <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition">
+                    Next: Select Time →
+                </button>
+            </div>
+
+            {% elif step == '2' %}
+            <!-- Step 2: Date & Time Selection -->
+            <h2 class="text-2xl font-bold mb-4">Pick Date & Time</h2>
+
+            {{ form.booking_date.as_field_group }}
+            {{ form.start_time.as_field_group }}
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-semibold mb-2">Duration</label>
+                <div class="grid grid-cols-3 gap-2">
+                    {% for value, label in form.duration_hours.field.choices %}
+                    <label class="border-2 rounded-lg p-3 text-center cursor-pointer hover:border-green-600 transition">
+                        <input type="radio" name="duration_hours" value="{{ value }}" class="hidden duration-radio" />
+                        <span class="font-semibold">{{ label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="availability-check" class="mb-4 p-3 rounded-lg hidden">
+                <!-- Real-time availability feedback -->
+            </div>
+
+            <div id="price-display" class="mb-4 p-4 bg-gray-50 rounded-lg hidden">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Total Price:</span>
+                    <span class="text-2xl font-bold text-green-600" id="total-price">Rp 0</span>
+                </div>
+            </div>
+
+            {{ form.notes.as_field_group }}
+
+            <div class="mt-6 flex space-x-3">
+                <a href="?step=1" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition text-center">
+                    ← Back
+                </a>
+                <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition">
+                    Next: Payment →
+                </button>
+            </div>
+
+            {% elif step == '3' %}
+            <!-- Step 3: Payment & Confirmation -->
+            <h2 class="text-2xl font-bold mb-4">Payment & Confirmation</h2>
+
+            <!-- Booking Summary -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <h3 class="font-bold mb-3">📋 Booking Summary</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Court:</span>
+                        <span class="font-semibold">{{ field.name }}</span>
+                    </div>
+                    <!-- Additional summary details populated from session -->
+                </div>
+            </div>
+
+            <!-- QRIS Payment -->
+            <div class="mb-6">
+                <h3 class="font-bold mb-3">💳 Payment Instructions</h3>
+                <ol class="text-sm text-gray-700 space-y-2 mb-4">
+                    <li>1. Scan the QRIS code below with your banking app</li>
+                    <li>2. Pay the exact amount shown</li>
+                    <li>3. Take a screenshot of the payment confirmation</li>
+                    <li>4. Upload the screenshot below</li>
+                </ol>
+
+                {% if field.owner_qris_image %}
+                <div class="bg-white border-2 border-gray-300 rounded-lg p-4 mb-4">
+                    <img src="{{ field.owner_qris_image.url }}" alt="QRIS Payment" class="max-w-xs mx-auto" />
+                </div>
+                <div class="flex space-x-2 mb-4">
+                    <a href="{{ field.owner_qris_image.url }}" download class="flex-1 bg-gray-200 text-gray-700 py-2 rounded text-center text-sm hover:bg-gray-300">
+                        Download QRIS
+                    </a>
+                    <button type="button" onclick="copyAmount()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded text-sm hover:bg-gray-300">
+                        Copy Amount
+                    </button>
+                </div>
+                {% else %}
+                <p class="text-red-600 text-sm">⚠️ Payment QR code not available. Please contact the court.</p>
+                {% endif %}
+            </div>
+
+            <!-- Upload Payment Proof -->
+            {{ form.payment_proof.as_field_group }}
+
+            <!-- Terms -->
+            <div class="mb-6">
+                {{ form.terms_agreed.as_field_group }}
+                <p class="text-xs text-gray-600 ml-6">
+                    By booking, you agree to our cancellation policy: Free cancellation up to 24 hours before your booking time.
+                </p>
+            </div>
+
+            <div class="mt-6 flex space-x-3">
+                <a href="?step=2" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition text-center">
+                    ← Back
+                </a>
+                <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-bold">
+                    CONFIRM BOOKING ✓
+                </button>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<script>
+// Real-time availability checking for Step 2
+{% if step == '2' %}
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('booking-form');
+    const dateInput = document.querySelector('input[name="booking_date"]');
+    const timeInput = document.querySelector('input[name="start_time"]');
+    const durationRadios = document.querySelectorAll('.duration-radio');
+    const availabilityDiv = document.getElementById('availability-check');
+    const priceDiv = document.getElementById('price-display');
+    const priceDisplay = document.getElementById('total-price');
+
+    function checkAvailability() {
+        const date = dateInput.value;
+        const startTime = timeInput.value;
+        const duration = document.querySelector('.duration-radio:checked')?.value;
+
+        if (date && startTime && duration) {
+            // Calculate end time
+            const [hours, minutes] = startTime.split(':');
+            const startDate = new Date();
+            startDate.setHours(parseInt(hours), parseInt(minutes));
+            const endDate = new Date(startDate.getTime() + parseFloat(duration) * 60 * 60 * 1000);
+            const endTime = endDate.toTimeString().slice(0, 5);
+
+            // Check availability via AJAX
+            fetch(`/booking/check-availability/?field_id={{ field.id }}&date=${date}&start_time=${startTime}&end_time=${endTime}`)
+                .then(response => response.json())
+                .then(data => {
+                    availabilityDiv.classList.remove('hidden');
+                    if (data.available) {
+                        availabilityDiv.className = 'mb-4 p-3 rounded-lg bg-green-100 border border-green-300';
+                        availabilityDiv.innerHTML = '<span class="text-green-800">✅ ' + data.message + '</span>';
+
+                        // Show price
+                        const totalPrice = {{ field.price_per_hour }} * parseFloat(duration);
+                        priceDisplay.textContent = 'Rp ' + totalPrice.toLocaleString('id-ID');
+                        priceDiv.classList.remove('hidden');
+                    } else {
+                        availabilityDiv.className = 'mb-4 p-3 rounded-lg bg-red-100 border border-red-300';
+                        availabilityDiv.innerHTML = '<span class="text-red-800">❌ ' + data.message + '</span>';
+                        priceDiv.classList.add('hidden');
+                    }
+                });
+        }
+    }
+
+    dateInput.addEventListener('change', checkAvailability);
+    timeInput.addEventListener('change', checkAvailability);
+    durationRadios.forEach(radio => radio.addEventListener('change', checkAvailability));
+
+    // Style selected duration radio
+    durationRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            durationRadios.forEach(r => r.parentElement.classList.remove('border-green-600', 'bg-green-50'));
+            if (this.checked) {
+                this.parentElement.classList.add('border-green-600', 'bg-green-50');
+            }
+        });
+    });
+});
+{% endif %}
+
+// Copy amount function for Step 3
+function copyAmount() {
+    const amount = document.getElementById('total-price')?.textContent || '';
+    navigator.clipboard.writeText(amount.replace(/[^0-9]/g, ''));
+    alert('Amount copied to clipboard!');
+}
+</script>
+{% endblock %}

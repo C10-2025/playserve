@@ -18,12 +18,11 @@
                     <a href="#" class="italic">Review Management</a>
                 {% else %}
                     <a href="{% url 'matchmaking:dashboard' %}" class="italic">Match Making</a>
-                    <a href="#" class="italic">Book Courts</a>
+                    <a href="{% url 'booking:field_list' %}" class="italic">Book Courts</a>
                     <a href="{% url 'discover_communities' %}" class="italic">Community</a>
                     <a href="{% url 'review:review_list' %}" class="italic">Court Reviews</a>
                 {% endif %}
             </div>
-
 
             <div class="nav-buttons">
                 {% if is_superuser or user_role_lower == 'admin' %}
@@ -68,8 +67,9 @@
                     </div>
                 </a>
                 <hr class="mobile-menu-divider">
+                <a href="{% url 'booking:my_bookings' %}">📅 My Bookings</a>
                 <a href="{% url 'matchmaking:dashboard' %}">Match Making</a>
-                <a href="#">Book Courts</a>
+                <a href="{% url 'booking:field_list' %}">Book Courts</a>
                 <a href="{% url 'discover_communities' %}">Community</a>
                 <a href="{% url 'review:review_list' %}">Court Reviews</a>
             {% endif %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PlayServe - Complete Profile{% endblock %}
+
+{% block content %}
+<div class="background-auth">
+    <div class="auth-container">
+        <h1>COMPLETE YOUR PROFILE</h1>
+        <p>Choose your avatar and set your location.</p>
+        
+        <form id="register-form-step2" action="{% url 'profil:register2' %}" method="post">
+            {% csrf_token %}
+            
+            <p style="color: var(--lime-green); font-weight: bold; margin-bottom: 20px;">Choose Your Avatar</p>
+            
+            <div class="avatar-options">
+                <img src="{% static 'image/avatar1.svg' %}" data-value="image/avatar1.svg" alt="Avatar 1">
+                <img src="{% static 'image/avatar2.svg' %}" data-value="image/avatar2.svg" alt="Avatar 2">
+                <img src="{% static 'image/avatar3.svg' %}" data-value="image/avatar3.svg" alt="Avatar 3">
+                <img src="{% static 'image/avatar4.svg' %}" data-value="image/avatar4.svg" alt="Avatar 4">
+                <img src="{% static 'image/avatar5.svg' %}" data-value="image/avatar5.svg" alt="Avatar 5">
+            </div>
+            
+            <input type="hidden" id="avatar-input-field" name="avatar" required>
+            
+            <div class="form-group">
+                <input type="text" name="lokasi" placeholder="Location" required list="kota-list">
+                <datalist id="kota-list">
+                    <option value="Jakarta"></option>
+                    <option value="Bogor"></option>
+                    <option value="Depok"></option>
+                    <option value="Tangerang"></option>
+                    <option value="Bekasi"></option>
+                </datalist>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" name="instagram" placeholder="Instagram">
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%;">LET'S SERVE!</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const avatars = document.querySelectorAll('.avatar-options img');
+        const avatarInput = document.getElementById('avatar-input-field');
+        const form = document.getElementById('register-form-step2');
+    
+        avatars.forEach(avatar => {
+            avatar.addEventListener('click', () => {
+                avatars.forEach(img => img.classList.remove('selected'));
+                avatar.classList.add('selected');
+                avatarInput.value = avatar.dataset.value;
+            });
+        });
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (!avatarInput.value) {
+                showToast('Selection Required', 'Please select an avatar first.', 'error');
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast('Success!', 'Your profile is complete.', 'success');
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || '/';
+                    }, 1500);
+                } else {
+                    showToast('Error', data.message || 'Please correct the errors.', 'error');
+                }
+            })
+            .catch(error => {
+                showToast('Network Error', 'An unexpected error occurred.', 'error');
+                console.error('Fetch error:', error);
+            });
+        });
+    });
+</script>
+{% endblock content %}

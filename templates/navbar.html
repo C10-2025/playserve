@@ -1,0 +1,134 @@
+{% load static %}
+
+{% if user.is_authenticated %}
+    
+    {% with is_superuser=user.is_superuser %}
+    {% with user_role_lower=profile.role|lower %}
+
+        <nav class="navbar">
+            <a href="{% url 'main:home' %}" class="logo">
+                <img src="{% static 'image/logo.svg' %}" alt="PlayServe Logo">
+            </a>
+
+            <div class="nav-links">
+                {% if is_superuser or user_role_lower == 'admin' %}
+                    <a href="{% url 'profil:manage_users' %}" class="italic">User Management</a>
+                    <a href="#" class="italic">Court Management</a>
+                    <a href="{% url 'discover_communities' %}" class="italic">Community Moderation</a>
+                    <a href="#" class="italic">Review Management</a>
+                {% else %}
+                    <a href="{% url 'matchmaking:dashboard' %}" class="italic">Match Making</a>
+                    <a href="#" class="italic">Book Courts</a>
+                    <a href="{% url 'discover_communities' %}" class="italic">Community</a>
+                    <a href="{% url 'review:review_list' %}" class="italic">Court Reviews</a>
+                {% endif %}
+            </div>
+
+
+            <div class="nav-buttons">
+                {% if is_superuser or user_role_lower == 'admin' %}
+                    <a href="{% url 'profil:logout' %}" class="btn" style="padding-right: 50px; padding-left: 50px; font-size: 20px;">Logout</a>
+                {% else %}
+                    <a href="{% url 'profil:profile_update' %}" class="user-profile-link">
+                        <div class="profile-info">
+                            <span class="profile-username">{{ user.username }}</span>
+                            <span class="profile-rank">{{ profile.rank }}</span>
+                        </div>
+                        <div class="avatar-container">
+                            <img src="{% static profile.avatar %}" alt="Avatar" class="profile-avatar">
+                            {% if profile.rank %}<img src="{% static 'image/'|add:profile.rank|lower|add:'.svg' %}" alt="Rank" class="rank-badge">{% endif %}
+                        </div>
+                    </a>
+                    <a href="{% url 'profil:logout' %}" class="btn" style="padding-right: 50px; padding-left: 50px; font-size: 20px;">Logout</a>
+                {% endif %}
+            </div>
+
+            <button class="mobile-menu-button">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+        </nav>
+
+        <div class="mobile-menu">
+            {% if is_superuser or user_role_lower == 'admin' %}
+                <a href="#">Admin Dashboard</a>
+                <a href="#">Match Review</a>
+                <a href="#">Court Management</a>
+                <a href="#">Manage Users</a>
+            {% else %}
+                <a href="{% url 'profil:profile_update' %}" class="user-profile-link-mobile">
+                    <div class="avatar-container-mobile">
+                        <img src="{% static profile.avatar %}" alt="Avatar" class="profile-avatar">
+                        {% if profile.rank %}<img src="{% static 'image/'|add:profile.rank|lower|add:'.svg' %}" alt="Rank" class="rank-badge">{% endif %}
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-username">{{ user.username }}</span>
+                        <span class="profile-rank">{{ profile.rank }}</span>
+                    </div>
+                </a>
+                <hr class="mobile-menu-divider">
+                <a href="{% url 'matchmaking:dashboard' %}">Match Making</a>
+                <a href="#">Book Courts</a>
+                <a href="{% url 'discover_communities' %}">Community</a>
+                <a href="{% url 'review:review_list' %}">Court Reviews</a>
+            {% endif %}
+
+            <a href="{% url 'profil:logout' %}" class="btn">Logout</a>
+        </div>
+        
+    {% endwith %}
+    {% endwith %}
+    
+{% else %}
+    <nav class="navbar">
+        <a href="{% url 'main:home' %}" class="logo">
+            <img src="{% static 'image/logo.svg' %}" alt="PlayServe Logo">
+        </a>
+
+        <div class="nav-links">
+            <a href="{% url 'profil:login' %}" class="italic">Match Making</a>
+            <a href="{% url 'profil:login' %}" class="italic">Book Courts</a>
+            <a href="{% url 'profil:login' %}" class="italic">Community</a>
+            <a href="{% url 'profil:login' %}" class="italic">Court Reviews</a>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="{% url 'profil:login' %}" class="btn">Log In</a>
+            <a href="{% url 'profil:register1' %}" class="btn btn-outline">Sign Up</a>
+        </div>
+
+        <button class="mobile-menu-button">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+    </nav>
+
+    <div class="mobile-menu">
+        <a href="{% url 'profil:login' %}">Match Making</a>
+        <a href="{% url 'profil:login' %}">Book Courts</a>
+        <a href="{% url 'profil:login' %}">Community</a>
+        <a href="{% url 'profil:login' %}">Court Reviews</a>
+        <a href="{% url 'profil:login' %}" class="btn">Log In</a>
+        <a href="{% url 'profil:register1' %}" class="btn btn-outline">Sign Up</a>
+    </div>
+{% endif %}
+
+<script>
+    const mobileMenuButton = document.querySelector(".mobile-menu-button");
+    const mobileMenu = document.querySelector(".mobile-menu");
+
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener("click", () => {
+          const isHidden = mobileMenu.style.display === 'none' || mobileMenu.style.display === '';
+          mobileMenu.style.display = isHidden ? 'block' : 'none';
+        });
+    
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1200) { 
+                mobileMenu.style.display = 'none';
+            }
+        });
+    }
+</script>

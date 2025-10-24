@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<main class="bgcommunity w-full px-4 py-16">
+  <div class="max-w-6xl mx-auto">
+
+    <!-- Title -->
+    <div class="flex flex-col items-center mb-10">
+      <h1 class="text-4xl md:text-5xl font-extrabold uppercase tracking-wider text-white text-center">
+        My Communities
+        <span class="text-white/60 text-xl md:text-2xl block mt-2">{{ subtitle }}</span>
+      </h1>
+
+      {% if is_admin %}
+        <button onclick="openCreateModal()"
+                class="mt-4 bg-[#C1D752] text-gray-900 font-bold py-2.5 px-6 rounded-lg shadow-md hover:brightness-90 hover:-translate-y-0.5 transition-all duration-300">
+          + Create New Community
+        </button>
+      {% endif %}
+    </div>
+
+    <!-- Communities List -->
+    {% if communities %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for community in communities %}
+        <div class="bg-white text-gray-900 rounded-xl p-6 text-left flex flex-col justify-between shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+          <div>
+            <h3 class="text-xl font-extrabold mb-2">{{ community.name }}</h3>
+            <p class="text-base text-gray-600">{{ community.members.count }} members</p>
+            {% if community.description %}
+              <p class="text-sm text-gray-700 mt-2">{{ community.description|truncatechars:100 }}</p>
+            {% endif %}
+          </div>
+
+          <a href="{% url 'community_detail' community.id %}"
+             class="w-full text-center mt-4 py-2 px-4 rounded-lg text-gray-900 font-semibold transition-all duration-300"
+             style="background-color: var(--lime-green); box-shadow: 0 4px 10px rgba(193, 215, 82, 0.4);">
+            OPEN COMMUNITY
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <!-- Empty State -->
+      {% if mode == 'joined' %}
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg mx-auto p-8 md:p-12 text-center text-gray-900">
+          <h3 class="text-2xl font-bold mb-4">You haven’t joined any communities</h3>
+          <p class="text-gray-600 mb-8">Find and join communities that match your interests.</p>
+          <a href="{% url 'discover_communities' %}" class="inline-block bg-[#C1D752] text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg hover:brightness-90 transition-all duration-300">
+            Discover Communities
+          </a>
+        </div>
+      {% elif mode == 'created' %}
+        {% if is_admin %}
+          <div class="bg-white rounded-2xl shadow-xl max-w-lg mx-auto p-8 md:p-12 text-center text-gray-900">
+            <h3 class="text-2xl font-bold mb-4">You haven’t created any communities yet</h3>
+            <p class="text-gray-600 mb-8">Start your first community and invite others to join.</p>
+            <button onclick="openCreateModal()" class="inline-block bg-[#C1D752] text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg hover:brightness-90 transition-all duration-300">
+              + Create Community
+            </button>
+          </div>
+        {% else %}
+          <div class="bg-white rounded-2xl shadow-xl max-w-lg mx-auto p-8 md:p-12 text-center text-gray-900">
+            <h3 class="text-2xl font-bold mb-4">No communities created by you</h3>
+            <p class="text-gray-600 mb-8">Only admins can create communities.</p>
+            <a href="{% url 'discover_communities' %}" class="inline-block bg-[#C1D752] text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg hover:brightness-90 transition-all duration-300">
+              Discover Communities
+            </a>
+          </div>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  </div>
+</main>
+
+<!-- Create Community Modal -->
+<div id="createModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+     data-gramm="false" data-gramm_editor="false">
+  <div class="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full">
+    <h3 class="text-2xl font-bold text-gray-900 mb-6">Create New Community</h3>
+    <form id="create-community-form" method="POST" action="{% url 'create_community' %}" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Name</label>
+        <input type="text" name="name" placeholder="Enter community name"
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all"
+               data-gramm="false" data-gramm_editor="false" spellcheck="false" autocorrect="off" autocapitalize="off"
+               required>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+        <textarea name="description" rows="4" placeholder="Describe the community..."
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all"
+                  data-gramm="false" data-gramm_editor="false" spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-all">Cancel</button>
+        <button type="submit" class="px-5 py-2 bg-[#C1D752] text-gray-900 font-semibold rounded-lg shadow-md hover:brightness-90 transition-all">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openCreateModal() {
+    document.getElementById('createModal').classList.remove('hidden');
+  }
+  function closeCreateModal() {
+    document.getElementById('createModal').classList.add('hidden');
+  }
+
+  // CSRF helper
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // Toast
+  function toastCompat(title, message, type) {
+    if (window.showToast) return window.showToast(title, message, type);
+    const el = document.createElement('div');
+    el.textContent = title ? `${title}: ${message}` : (message || title || '');
+    el.style.position = 'fixed';
+    el.style.right = '16px';
+    el.style.bottom = '16px';
+    el.style.zIndex = '9999';
+    el.style.padding = '10px 14px';
+    el.style.borderRadius = '10px';
+    el.style.fontWeight = '600';
+    el.style.boxShadow = '0 8px 24px rgba(0,0,0,.2)';
+    el.style.background = (type === 'error') ? '#e53e3e' : '#C1D752';
+    el.style.color = (type === 'error') ? '#fff' : '#082459';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+
+  // AJAX create community
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('create-community-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.disabled = true; submitBtn.textContent = 'Creating...';
+
+      try {
+        const resp = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+          body: new FormData(form)
+        });
+
+        if (resp.redirected) {
+          window.location.href = resp.url;
+          return;
+        }
+
+        const data = await resp.json().catch(() => ({}));
+
+        if (!resp.ok) {
+          const isDuplicate =
+            (data && (data.code === 'duplicate_name')) ||
+            (resp.status === 409) ||
+            (/already\s+exists/i.test(data.message || ''));
+
+          if (isDuplicate) {
+            toastCompat('Duplicate Name', 'Community name already exists. Please use a different name.', 'error');
+          } else {
+            toastCompat('Error', data.message || 'Failed to create community.', 'error');
+          }
+          return;
+        }
+
+        // Success
+        toastCompat('Success', data.message || 'Community created successfully.', 'success');
+        form.reset();
+        closeCreateModal();
+
+        const target = data.redirect_url || "{% url 'discover_communities' %}";
+        setTimeout(() => { window.location.href = target; }, 1200);
+
+      } catch (err) {
+        toastCompat('Error', 'Unexpected error occurred.', 'error');
+      } finally {
+        submitBtn.disabled = false; submitBtn.textContent = originalBtnText;
+      }
+    });
+  });
+</script>
+
+{% endblock %}

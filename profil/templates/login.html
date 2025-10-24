@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PlayServe - Login{% endblock %}
+
+{% block content %}
+    <div class="background-auth">
+        <a href="{% url 'main:home' %}" class="logo-auth">
+            <img src="{% static 'image/logo.svg' %}" alt="PlayServe Logo">
+        </a>
+        <div class="auth-container">
+            
+            <h1 class="heading1">READY TO SERVE AGAIN?</h1>
+            <p class="text">Your next opponent and favorite court are waiting.</p>
+
+            <form id="login-form">
+                {% csrf_token %}
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <button type="submit">LET'S SERVE!</button>
+            </form>
+            
+            <p class="auth-link-text">New Player? <a href="{% url 'profil:register1' %}">Create a New Account</a></p>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch('{% url "profil:login" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; }); 
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    window.showToast('Success!', data.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || '/'; 
+                    }, 1000); 
+                }
+            })
+            .catch(error => {
+                const message = error.message || 'An unexpected error occurred.';
+                window.showToast('Login Failed', message, 'error');
+            });
+        });
+    });
+</script>
+{% endblock content %}

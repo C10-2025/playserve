@@ -548,7 +548,7 @@ def admin_verify_payment(request, booking_id):
             booking.save()
             messages.warning(request, f'Booking #{booking.id} cancelled')
 
-        return redirect('booking:admin_bookings')
+        return redirect('booking:admin_court_management')
 
     return render(request, 'booking/admin_verify_payment.html', {
         'booking': booking

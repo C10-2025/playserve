@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     'main',
     'booking',
     "django.contrib.humanize",
+    'review',
+    'matchmaking',
+    'community',
 ]
 
 MIDDLEWARE = [

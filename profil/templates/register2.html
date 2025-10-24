@@ -4,7 +4,7 @@
 {% block title %}PlayServe - Complete Profile{% endblock %}
 
 {% block content %}
-<div class="auth-page">
+<div class="background-auth">
     <div class="auth-container">
         <h1>COMPLETE YOUR PROFILE</h1>
         <p>Choose your avatar and set your location.</p>
@@ -49,7 +49,7 @@
         const avatars = document.querySelectorAll('.avatar-options img');
         const avatarInput = document.getElementById('avatar-input-field');
         const form = document.getElementById('register-form-step2');
-
+    
         avatars.forEach(avatar => {
             avatar.addEventListener('click', () => {
                 avatars.forEach(img => img.classList.remove('selected'));

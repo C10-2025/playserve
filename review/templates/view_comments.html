@@ -136,7 +136,7 @@ function deleteComment(reviewId) {
                 commentsList.innerHTML = '<p class="empty">No comments yet for this lapangan.</p>';
             }
 
-            // ✅ Reload main review list after successful deletion
+            // Reload main review list after successful deletion
             setTimeout(() => {
                 window.location.reload();
             }, 500); // short delay for smoother UX

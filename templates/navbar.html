@@ -72,7 +72,7 @@
                 <a href="{% url 'matchmaking:dashboard' %}">Match Making</a>
                 <a href="#">Book Courts</a>
                 <a href="{% url 'discover_communities' %}">Community</a>
-                <a href="#">Court Reviews</a>
+                <a href="{% url 'review:review_list' %}">Court Reviews</a>
             {% endif %}
 
             <a href="{% url 'profil:logout' %}" class="btn">Logout</a>

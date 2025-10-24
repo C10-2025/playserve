@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from review.forms import ReviewForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
+
 from review.models import Review
-from main.models import Lapangan
+from booking.models import PlayingField
 
 
 def add_review(request):
@@ -27,16 +27,16 @@ def add_review(request):
             'message': 'Failed to add review.'
         }, status=400)
 
-    # GET: render AJAX form. Expect optional lapangan id as ?lapangan=ID
-    lapangan = None
-    lapangan_id = request.GET.get('lapangan')
-    if lapangan_id:
-        lapangan = get_object_or_404(Lapangan, pk=lapangan_id)
+    # GET: render AJAX form. Expect optional field id as ?field=ID
+    field = None
+    field_id = request.GET.get('field')
+    if field_id:
+        field = get_object_or_404(PlayingField, pk=field_id)
 
     form = ReviewForm()
     context = {
         'form': form,
-        'lapangan': lapangan
+        'field': field
     }
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -47,19 +47,27 @@ def add_review(request):
 
 
 def review_list(request):
-    lapangans = Lapangan.objects.all()
-    context = {'lapangans': lapangans}
-    user_profile = request.user.profile
-    context['profile'] = user_profile
+    fields = PlayingField.objects.all()
+    context = {'fields': fields}
+
+    # Optional: include user profile if your template expects it
+    if hasattr(request.user, 'profile'):
+        context['profile'] = request.user.profile
+
     return render(request, 'review_list.html', context)
 
 
-def view_comments(request, lapangan_id):
-    lapangan = get_object_or_404(Lapangan, pk=lapangan_id)
-    comments = Review.objects.filter(lapangan=lapangan).order_by('-id')
-    is_admin_user = request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser)
+def view_comments(request, field_id):
+    field = get_object_or_404(PlayingField, pk=field_id)
+    comments = Review.objects.filter(field=field).order_by('-id')
+
+    is_admin_user = (
+        request.user.is_authenticated and
+        (request.user.is_staff or request.user.is_superuser)
+    )
+
     context = {
-        'lapangan': lapangan,
+        'field': field,
         'comments': comments,
         'is_admin': is_admin_user
     }
@@ -81,16 +89,16 @@ def is_admin(user):
 def delete_review(request, review_id):
     if request.method == 'POST':
         review = get_object_or_404(Review, pk=review_id)
-        lapangan_id = review.lapangan.id if review.lapangan else None
+        field_id = review.field.id if hasattr(review, 'field') and review.field else None
         review.delete()
-        
+
         return JsonResponse({
             'status': 'success',
             'toast_type': 'success',
             'message': 'Review deleted successfully.',
-            'lapangan_id': lapangan_id
+            'field_id': field_id
         })
-    
+
     return JsonResponse({
         'status': 'error',
         'toast_type': 'error',

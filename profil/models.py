@@ -30,6 +30,7 @@ class Profile(models.Model):
     avatar = models.CharField(max_length=100, choices=AVATAR_CHOICES, default='image/avatar1.svg')
     jumlah_kemenangan = models.PositiveIntegerField(default=0)
 
+    #tes tes
     @property
     def rank(self):
         wins = self.jumlah_kemenangan

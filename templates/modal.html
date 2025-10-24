@@ -47,9 +47,8 @@
     event.preventDefault();
     const form = document.getElementById('modalForm');
     const formData = new FormData(form);
-    
-    // Ganti baris fetch di bawah ini
-    const response = await fetch('#', { // <-- UBAH DI SINI
+
+    const response = await fetch('#', {
       method: 'POST',
       body: formData,
       headers: {
@@ -67,10 +66,8 @@
     }
   }
 
-  // Menghubungkan form submission dengan fungsi AJAX
   document.getElementById('modalForm').addEventListener('submit', submitModalForm);
   
-  // Menutup modal jika user mengklik di luar area konten
   document.getElementById('genericModal').addEventListener('click', function(event) {
     if (event.target === this) {
       hideModal();

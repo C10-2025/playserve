@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
 from .models import Community, Post, Reply
+from profil.models import Profile
 from django.db.models import Q
 
 def is_admin(user):
@@ -24,11 +25,17 @@ def discover_communities(request):
         'joined_community_ids': joined_community_ids,
         'search_query': query,
     }
+
+    if request.user.is_authenticated:
+        try:
+            context['profile'] = request.user.profile
+        except Profile.DoesNotExist:
+            context['profile'] = None
     return render(request, 'discover_communities.html', context)
 
 @login_required
 def my_communities(request):
-    tab = request.GET.get('tab', 'joined')  # default tab
+    tab = request.GET.get('tab', 'joined')
     if tab == 'created':
         communities = Community.objects.filter(creator=request.user).order_by('-created_at')
         subtitle = 'Created by Me'
@@ -36,11 +43,19 @@ def my_communities(request):
         communities = request.user.joined_communities.all().order_by('-created_at')
         subtitle = 'Joined'
 
-    return render(request, 'my_communities.html', {
+    context = {
         'communities': communities,
         'tab': tab,
         'subtitle': subtitle,
-    })
+    }
+
+    if request.user.is_authenticated:
+        try:
+            context['profile'] = request.user.profile
+        except Profile.DoesNotExist:
+            context['profile'] = None
+
+    return render(request, 'my_communities.html', context)
 
 
 @login_required
@@ -146,6 +161,12 @@ def community_detail(request, community_id):
         'community': community,
         'posts': posts,
     }
+
+    if request.user.is_authenticated:
+        try:
+            context['profile'] = request.user.profile
+        except Profile.DoesNotExist:
+            context['profile'] = None
     return render(request, 'community_detail.html', context)
 
 

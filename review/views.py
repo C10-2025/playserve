@@ -50,10 +50,6 @@ def review_list(request):
     fields = PlayingField.objects.all()
     context = {'fields': fields}
 
-    # Optional: include user profile if your template expects it
-    if hasattr(request.user, 'profile'):
-        context['profile'] = request.user.profile
-
     return render(request, 'review_list.html', context)
 
 

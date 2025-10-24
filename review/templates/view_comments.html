@@ -15,7 +15,7 @@
 }
 
 .comment-modal {
-  background: #ffffff; /* ✅ white background */
+  background: #ffffff; /* white background */
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   width: 90%;
@@ -24,7 +24,7 @@
   position: relative;
   border: 2px solid #d6e8c5;
   font-family: "Poppins", sans-serif;
-  color: #1a2b4c; /* ✅ dark text for readability */
+  color: #1a2b4c; /* dark text for readability */
   max-height: 80vh;
   overflow-y: auto;
 }
@@ -37,7 +37,7 @@
   border:none; 
   font-size:26px; 
   cursor:pointer; 
-  color:#1a2b4c; /* ✅ dark close button */
+  color:#1a2b4c; 
 }
 
 .comment-item { 
@@ -46,7 +46,7 @@
   padding:12px 14px; 
   margin-bottom:10px;
   position: relative;
-  color:#1a2b4c; /* ✅ dark text */
+  color:#1a2b4c; 
 }
 
 .comment-stars { 
@@ -57,7 +57,7 @@
 
 .comment-text { 
   margin-bottom: 8px;
-  color:#1a2b4c; /* ✅ dark text */
+  color:#1a2b4c; 
 }
 
 .delete-comment-btn {
@@ -79,7 +79,7 @@
 
 .empty { 
   text-align:center; 
-  color:#555; /* ✅ medium gray for empty state */
+  color:#555; /* empty state */
   font-style:italic; 
 }
 </style>
@@ -164,7 +164,7 @@ function deleteComment(reviewId) {
         commentsList.innerHTML = '<p class="empty">No comments yet for this field.</p>';
       }
 
-      // ✅ Reload to update review preview
+      // Reload to update review preview
       setTimeout(() => {
         window.location.reload();
       }, 500);

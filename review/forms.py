@@ -1,7 +1,8 @@
-from django.forms import ModelForm, CharField, ChoiceField, PasswordInput, ValidationError
+from django.forms import ModelForm
 from review.models import Review
+
 
 class ReviewForm(ModelForm):
     class Meta:
         model = Review
-        fields = ['nama_lapangan','rating', 'komentar'] 
+        fields = ['lapangan', 'rating', 'komentar']

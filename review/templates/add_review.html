@@ -146,11 +146,18 @@
     <h2>LEAVE A RATING & REVIEW</h2>
     <p class="subtitle">Share your experience at The Green Courts!</p>
 
-    <form id="add-review-form-inner" method="post" action="{% url 'review:add_review' %}">
+  <form id="add-review-form" method="post" action="{% url 'review:add_review' %}">
       {% csrf_token %}
 
-      <label for="nama_lapangan">Court</label>
-      <input type="text" name="nama_lapangan" id="nama_lapangan" class="input-field" placeholder="Court name">
+      {# lapangan is passed in context for AJAX; include as hidden field #}
+      {% if lapangan %}
+        <input type="hidden" name="lapangan" value="{{ lapangan.id }}">
+        <p style="font-weight:600; margin-bottom:10px;">Leave a review for: <span style="color:#1a2b4c">{{ lapangan.nama }}</span></p>
+      {% else %}
+        {# fallback: allow selection if no lapangan provided (optional) #}
+        <label for="lapangan">Court</label>
+        <input type="text" name="lapangan" id="lapangan" class="input-field" placeholder="Court (will be mapped to an existing lapangan id)">
+      {% endif %}
 
       <div class="star-section">
         <div id="star-rating" role="radiogroup" aria-label="Rating">
@@ -197,7 +204,7 @@
     return match ? decodeURIComponent(match[2]) : null;
   }
 
-  const form = document.getElementById('add-review-form-inner');
+  const form = document.getElementById('add-review-form');
   const submitBtn = document.getElementById('submit-btn');
 
   form.addEventListener('submit', async (e) => {

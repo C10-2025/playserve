@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('role', models.CharField(choices=[('PLAYER', 'Player'), ('ADMIN', 'Admin')], default='PLAYER', max_length=50)),
                 ('lokasi', models.CharField(choices=[('Jakarta', 'Jakarta'), ('Bogor', 'Bogor'), ('Depok', 'Depok'), ('Tangerang', 'Tangerang'), ('Bekasi', 'Bekasi')], max_length=50)),
                 ('instagram', models.CharField(blank=True, max_length=100, null=True)),
-                ('avatar', models.CharField(choices=[('static/image/avatar1.png', 'Avatar 1'), ('static/image/avatar2.png', 'Avatar 2'), ('static/image/avatar3.png', 'Avatar 3'), ('static/image/avatar4.png', 'Avatar 4'), ('static/image/avatar5.png', 'Avatar 5')], default='static/image/avatar1.png', max_length=100)),
+                ('avatar', models.CharField(choices=[('static/image/avatar1.svg', 'Avatar 1'), ('static/image/avatar2.svg', 'Avatar 2'), ('static/image/avatar3.svg', 'Avatar 3'), ('static/image/avatar4.svg', 'Avatar 4'), ('static/image/avatar5.svg', 'Avatar 5')], default='static/image/avatar1.svg', max_length=100)),
                 ('jumlah_kemenangan', models.PositiveIntegerField(default=0)),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],

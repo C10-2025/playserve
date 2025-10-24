@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='avatar',
-            field=models.CharField(choices=[('image/avatar1.png', 'Avatar 1'), ('image/avatar2.png', 'Avatar 2'), ('image/avatar3.png', 'Avatar 3'), ('image/avatar4.png', 'Avatar 4'), ('image/avatar5.png', 'Avatar 5')], default='image/avatar1.png', max_length=100),
+            field=models.CharField(choices=[('image/avatar1.svg', 'Avatar 1'), ('image/avatar2.svg', 'Avatar 2'), ('image/avatar3.svg', 'Avatar 3'), ('image/avatar4.svg', 'Avatar 4'), ('image/avatar5.svg', 'Avatar 5')], default='image/avatar1.svg', max_length=100),
         ),
     ]

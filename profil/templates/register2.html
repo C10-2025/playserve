@@ -4,7 +4,7 @@
 {% block title %}PlayServe - Complete Profile{% endblock %}
 
 {% block content %}
-<div class="auth-page">
+<div class="background-auth">
     <div class="auth-container">
         <h1>COMPLETE YOUR PROFILE</h1>
         <p>Choose your avatar and set your location.</p>
@@ -15,11 +15,11 @@
             <p style="color: var(--lime-green); font-weight: bold; margin-bottom: 20px;">Choose Your Avatar</p>
             
             <div class="avatar-options">
-                <img src="{% static 'image/avatar1.png' %}" data-value="image/avatar1.png" alt="Avatar 1">
-                <img src="{% static 'image/avatar2.png' %}" data-value="image/avatar2.png" alt="Avatar 2">
-                <img src="{% static 'image/avatar3.png' %}" data-value="image/avatar3.png" alt="Avatar 3">
-                <img src="{% static 'image/avatar4.png' %}" data-value="image/avatar4.png" alt="Avatar 4">
-                <img src="{% static 'image/avatar5.png' %}" data-value="image/avatar5.png" alt="Avatar 5">
+                <img src="{% static 'image/avatar1.svg' %}" data-value="image/avatar1.svg" alt="Avatar 1">
+                <img src="{% static 'image/avatar2.svg' %}" data-value="image/avatar2.svg" alt="Avatar 2">
+                <img src="{% static 'image/avatar3.svg' %}" data-value="image/avatar3.svg" alt="Avatar 3">
+                <img src="{% static 'image/avatar4.svg' %}" data-value="image/avatar4.svg" alt="Avatar 4">
+                <img src="{% static 'image/avatar5.svg' %}" data-value="image/avatar5.svg" alt="Avatar 5">
             </div>
             
             <input type="hidden" id="avatar-input-field" name="avatar" required>
@@ -36,7 +36,7 @@
             </div>
             
             <div class="form-group">
-                <input type="text" name="instagram" placeholder="Instagram (Optional)">
+                <input type="text" name="instagram" placeholder="Instagram">
             </div>
             
             <button type="submit" class="btn" style="width: 100%;">LET'S SERVE!</button>
@@ -49,7 +49,7 @@
         const avatars = document.querySelectorAll('.avatar-options img');
         const avatarInput = document.getElementById('avatar-input-field');
         const form = document.getElementById('register-form-step2');
-
+    
         avatars.forEach(avatar => {
             avatar.addEventListener('click', () => {
                 avatars.forEach(img => img.classList.remove('selected'));

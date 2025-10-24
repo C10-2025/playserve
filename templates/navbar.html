@@ -21,6 +21,7 @@
                     <a href="{% url 'booking:field_list' %}" class="italic">Book Courts</a>
                     <a href="{% url 'discover_communities' %}" class="italic">Community</a>
                     <a href="{% url 'review:review_list' %}" class="italic">Court Reviews</a>
+                    <a href="{% url 'booking:my_bookings' %}" class="italic">My Bookings</a>
                 {% endif %}
             </div>
 
@@ -67,11 +68,11 @@
                     </div>
                 </a>
                 <hr class="mobile-menu-divider">
-                <a href="{% url 'booking:my_bookings' %}">📅 My Bookings</a>
                 <a href="{% url 'matchmaking:dashboard' %}">Match Making</a>
                 <a href="{% url 'booking:field_list' %}">Book Courts</a>
                 <a href="{% url 'discover_communities' %}">Community</a>
                 <a href="{% url 'review:review_list' %}">Court Reviews</a>
+                <a href="{% url 'booking:my_bookings' %}">My Bookings</a>
             {% endif %}
 
             <a href="{% url 'profil:logout' %}" class="btn">Logout</a>

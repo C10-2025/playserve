@@ -21,6 +21,5 @@ urlpatterns = [
     path('admin/court/<int:pk>/edit/', views.AdminFieldUpdateView.as_view(), name='admin_edit_field'),
     path('admin/court/<int:pk>/delete/', views.AdminFieldDeleteView.as_view(), name='admin_delete_field'),
     path('admin/court/<int:field_id>/toggle/', views.admin_toggle_field_status, name='admin_toggle_field'),
-    path('admin/bookings/', views.AdminBookingListView.as_view(), name='admin_bookings'),
-    path('admin/booking/<int:booking_id>/verify/', views.admin_verify_payment, name='admin_verify_payment'),
+    # Admin booking management URLs removed
 ]

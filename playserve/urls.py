@@ -27,6 +27,8 @@ urlpatterns = [
     path('', include('main.urls')),
     path('community/', include('community.urls')),
     path('matchmaking/', include('matchmaking.urls')),
+    path('review/', include('review.urls')),
+    path('', include('main.urls')),
 ]
 
 if settings.DEBUG:

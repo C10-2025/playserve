@@ -4,7 +4,7 @@
 {% block content %}
 {% include 'navbar.html' %}
 
-<main class="w-full px-4 py-16">
+<main class="bgcommunity w-full px-4 py-16">
   <div class="max-w-6xl mx-auto">
 
     <!-- Title -->
@@ -14,25 +14,7 @@
         <span class="text-white/60 text-xl md:text-2xl block mt-2">{{ subtitle }}</span>
       </h1>
 
-      <!-- Tabs -->
-      <div class="flex justify-center gap-2 mt-4 mb-2">
-        <a href="{% url 'my_communities' %}?tab=joined"
-           class="px-4 py-2 rounded-lg font-semibold transition {% if tab == 'joined' %}bg-[#C1D752] text-gray-900{% else %}bg-white/10 text-white hover:bg-white/20{% endif %}">
-          Joined
-        </a>
-        <a href="{% url 'my_communities' %}?tab=created"
-           class="px-4 py-2 rounded-lg font-semibold transition {% if tab == 'created' %}bg-[#C1D752] text-gray-900{% else %}bg-white/10 text-white hover:bg-white/20{% endif %}">
-          Created
-        </a>
-      </div>
-
-      <!-- CTA hanya untuk admin (tanpa OR/kurung biar aman) -->
-      {% if request.user.is_staff %}
-        <button onclick="openCreateModal()"
-                class="mt-4 bg-[#C1D752] text-gray-900 font-bold py-2.5 px-6 rounded-lg shadow-md hover:brightness-90 hover:-translate-y-0.5 transition-all duration-300">
-          + Create New Community
-        </button>
-      {% elif request.user.is_superuser %}
+      {% if is_admin %}
         <button onclick="openCreateModal()"
                 class="mt-4 bg-[#C1D752] text-gray-900 font-bold py-2.5 px-6 rounded-lg shadow-md hover:brightness-90 hover:-translate-y-0.5 transition-all duration-300">
           + Create New Community
@@ -49,7 +31,6 @@
           <div>
             <h3 class="text-xl font-extrabold mb-2">{{ community.name }}</h3>
             <p class="text-base text-gray-600">{{ community.members.count }} members</p>
-            
             {% if community.description %}
               <p class="text-sm text-gray-700 mt-2">{{ community.description|truncatechars:100 }}</p>
             {% endif %}
@@ -66,7 +47,7 @@
 
     {% else %}
       <!-- Empty State -->
-      {% if tab == 'joined' %}
+      {% if mode == 'joined' %}
         <div class="bg-white rounded-2xl shadow-xl max-w-lg mx-auto p-8 md:p-12 text-center text-gray-900">
           <svg class="w-16 h-16 text-blue-500 mx-auto mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A9.06 9.06 0 0 1 6 18.719m12 0c.218.062.43.111.646.151m-12 0c-.216-.04-.428-.089-.646-.151M12 12.75a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z" />
@@ -80,19 +61,8 @@
           </a>
         </div>
 
-      {% elif tab == 'created' %}
-        {% if request.user.is_staff %}
-          <div class="bg-white rounded-2xl shadow-xl max-w-lg mx-auto p-8 md:p-12 text-center text-gray-900">
-            <svg class="w-16 h-16 text-blue-500 mx-auto mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A9.06 9.06 0 0 1 6 18.719m12 0c.218.062.43.111.646.151m-12 0c-.216-.04-.428-.089-.646-.151M12 12.75a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z" />
-            </svg>
-            <h3 class="text-2xl font-bold mb-4">You haven’t created any communities yet</h3>
-            <p class="text-gray-600 mb-8">Start your first community and invite others to join.</p>
-            <button onclick="openCreateModal()" class="inline-block bg-[#C1D752] text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg hover:brightness-90 transition-all duration-300">
-              + Create Community
-            </button>
-          </div>
-        {% elif request.user.is_superuser %}
+      {% elif mode == 'created' %}
+        {% if is_admin %}
           <div class="bg-white rounded-2xl shadow-xl max-w-lg mx-auto p-8 md:p-12 text-center text-gray-900">
             <svg class="w-16 h-16 text-blue-500 mx-auto mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A9.06 9.06 0 0 1 6 18.719m12 0c.218.062.43.111.646.151m-12 0c-.216-.04-.428-.089-.646-.151M12 12.75a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z" />
@@ -120,7 +90,7 @@
   </div>
 </main>
 
-<!-- Create Community Modal -->
+<!-- Create Community Modal (tetap sama) -->
 <div id="createModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
   <div class="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full">
     <h3 class="text-2xl font-bold text-gray-900 mb-6">Create New Community</h3>

@@ -9,13 +9,9 @@
 
     {% if user.is_superuser or profile.role == 'ADMIN' %}
         <main>
-            <section class="upper-main">
-                <div class="text-left mb-8">
-                    <h2 class="text-6xl font-extrabold text-white uppercase">COURTSIDE</h2>
-                </div>
-                <div class="text-left mb-8">
-                    <h2 class="text-6xl font-extrabold uppercase" style="color: var(--lime-green)">CONTROL</h2>
-                </div>
+            <section class="upper-main-admin">
+                <h1>COURTSIDE</h1>
+                <h1 style="color: var(--lime-green);">CONTROL</h1>
                 <p>Central hub to manage the PlayServe platform and its community.</p>
                 <br>
                 <br>
@@ -109,25 +105,25 @@
                 <h1>FIND YOUR RIVAL.<br>ACE THE COURT.</h1>
                 <p>The first gamified platform for tennis players in Indonesia. Climb the ranks, find your perfect match, and easily book the best courts.</p>
                 {% if user.is_authenticated %}
-                    <a href="#" class="btn">Find Your Match Now</a>
+                    <a href="{% url 'matchmaking:dashboard' %}" class="btn">Find Your Match Now</a>
                 {% else %}
                     <a href="{% url 'profil:login' %}" class="btn">Find Your Match Now</a>
                 {% endif %}
             </section>
 
             <section>
-                <div class="content-box">
+                <div class="content-box" style="margin-top: 0;">
                     <div class="info-text">
                         <h2>YOUR NEXT MATCH AWAITS</h2>
                         <p>Finding a game has never been this easy or this fast. Simply find a player, book the court, and get playing.</p>
                     </div>
                     
                     <div class="info-visuals">
-                        <img src="{% static 'image/maplocator.svg' %}" alt="Map illustration">
+                        <img src="{% static 'image/maplocator.svg' %}" alt="Map illustration" style="margin-bottom: 15px;">
                         {% if user.is_authenticated %}
-                            <a href="#" class="btn">Book The Court</a>
+                            <a href="#" class="btn" style="margin-bottom: 15px;">Book The Court</a>
                         {% else %}
-                            <a href="{% url 'profil:login' %}" class="btn">Book The Court</a>
+                            <a href="{% url 'profil:login' %}" class="btn" style="margin-bottom: 15px;">Book The Court</a>
                         {% endif %}
                     </div>
                 </div>
@@ -153,7 +149,7 @@
                                     <h3>Admin-Curated</h3>
                                 </div>
                             </div>
-                            <a href="#" class="btn">Explore Communities</a>
+                            <a href="{% url 'discover_communities' %}" class="btn">Explore Communities</a>
                         </section>
 
                     {% else %}

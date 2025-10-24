@@ -58,7 +58,7 @@
                 <a href="#">Manage Users</a>
             {% else %}
                 <a href="{% url 'profil:profile_update' %}" class="user-profile-link-mobile">
-                    <div class="avatar-container">
+                    <div class="avatar-container-mobile">
                         <img src="{% static profile.avatar %}" alt="Avatar" class="profile-avatar">
                         {% if profile.rank %}<img src="{% static 'image/'|add:profile.rank|lower|add:'.svg' %}" alt="Rank" class="rank-badge">{% endif %}
                     </div>

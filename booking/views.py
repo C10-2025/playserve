@@ -337,10 +337,10 @@ def admin_court_management(request):
         messages.error(request, "Access denied. Admin privileges required.")
         return redirect('main:home')
 
-    # Get admin's courts
-    courts = PlayingField.objects.filter(created_by=request.user).order_by('-created_at')
+    # Get all courts for admin management (including system-imported ones)
+    courts = PlayingField.objects.all().order_by('-created_at')
 
-    # Stats for admin's courts
+    # Stats for all courts (admin can manage all)
     my_courts = courts
     all_bookings = Booking.objects.filter(field__in=my_courts)
 
@@ -426,7 +426,8 @@ class AdminFieldUpdateView(LoginRequiredMixin, AdminTestMixin, UpdateView):
     template_name = 'booking/admin_field_form.html'
 
     def get_queryset(self):
-        return PlayingField.objects.filter(created_by=self.request.user)
+        # Allow editing all courts for admin management
+        return PlayingField.objects.all()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -448,7 +449,8 @@ class AdminFieldDeleteView(LoginRequiredMixin, AdminTestMixin, DeleteView):
     success_url = reverse_lazy('booking:admin_court_management')
 
     def get_queryset(self):
-        return PlayingField.objects.filter(created_by=self.request.user)
+        # Allow deleting all courts for admin management
+        return PlayingField.objects.all()
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -526,12 +528,15 @@ class AdminBookingListView(LoginRequiredMixin, AdminTestMixin, ListView):
 @login_required
 def admin_verify_payment(request, booking_id):
     """Admin: Verify payment and confirm booking"""
-    # Ensure admin owns the court
-    booking = get_object_or_404(
-        Booking.objects.select_related('field'),
-        id=booking_id,
-        field__created_by=request.user
-    )
+    from django.contrib import messages
+
+    # Ensure user is admin and booking exists (admins can verify any booking)
+    is_admin = hasattr(request.user, 'profile') and request.user.profile.role == 'ADMIN'
+    if not is_admin:
+        messages.error(request, "Access denied. Admin privileges required.")
+        return redirect('main:home')
+
+    booking = get_object_or_404(Booking.objects.select_related('field'), id=booking_id)
 
     if request.method == 'POST':
         decision = request.POST.get('decision')

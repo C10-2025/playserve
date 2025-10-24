@@ -17,12 +17,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <p class="text-sm text-gray-600">Court</p>
-                        <p class="font-semibold text-lg">{{ booking.field.name }}</p>
+                        <p class="font-semibold text-lg text-gray-600">{{ booking.field.name }}</p>
                         <p class="text-sm text-gray-600">{{ booking.field.city }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-600">Customer</p>
-                        <p class="font-semibold">{{ booking.booker_name }}</p>
+                        <p class="font-semibold text-gray-600">{{ booking.booker_name }}</p>
                         <p class="text-sm text-gray-600">{{ booking.booker_phone }}</p>
                         {% if booking.booker_email %}
                         <p class="text-sm text-gray-600">{{ booking.booker_email }}</p>
@@ -30,7 +30,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-600">Date & Time</p>
-                        <p class="font-semibold">{{ booking.booking_date|date:"l, F j, Y" }}</p>
+                        <p class="font-semibold text-gray-600">{{ booking.booking_date|date:"l, F j, Y" }}</p>
                         <p class="text-sm text-gray-600">{{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</p>
                         <p class="text-sm text-gray-600">{{ booking.duration_hours }} hour{{ booking.duration_hours|pluralize }}</p>
                     </div>

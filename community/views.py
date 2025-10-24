@@ -46,28 +46,25 @@ def discover_communities(request):
 
 @login_required
 def my_communities(request):
-    tab = request.GET.get('tab', 'joined')
-    if tab == 'created':
+    is_admin = request.user.is_staff or request.user.is_superuser
+
+    if is_admin:
         communities = Community.objects.filter(creator=request.user).order_by('-created_at')
+        mode = 'created'         # untuk empty state di template
         subtitle = 'Created by Me'
     else:
         communities = request.user.joined_communities.all().order_by('-created_at')
+        mode = 'joined'
         subtitle = 'Joined'
 
     context = {
         'communities': communities,
-        'tab': tab,
+        'is_admin': is_admin,
+        'mode': mode,            # 'created' atau 'joined' (tanpa tab/url param)
         'subtitle': subtitle,
+        'profile': getattr(request.user, 'profile', None) if request.user.is_authenticated else None,
     }
-
-    if request.user.is_authenticated:
-        try:
-            context['profile'] = request.user.profile
-        except Profile.DoesNotExist:
-            context['profile'] = None
-
     return render(request, 'my_communities.html', context)
-
 
 @login_required
 def join_community(request, community_id):
@@ -93,25 +90,60 @@ def join_community(request, community_id):
 @login_required
 @user_passes_test(is_admin)
 def create_community(request):
-    if request.method == "POST":
-        name = request.POST.get("name", "").strip()
-        description = request.POST.get("description", "").strip()
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
 
-        if not name or not description:
-            messages.error(request, "Both name and description are required.")
-        else:
+        # helper deteksi ajax
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+        if not name:
+            msg = 'Nama komunitas harus diisi.'
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': msg}, status=400)
+            messages.error(request, msg)
+            return redirect('discover_communities')
+
+        existing = Community.objects.filter(name__iexact=name).first()
+        if existing:
+            msg = f'Komunitas dengan nama "{name}" sudah ada. Silakan gunakan nama lain.'
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': msg}, status=400)
+            messages.error(request, msg)
+            return redirect('discover_communities')
+
+        try:
             community = Community.objects.create(
                 name=name,
                 description=description,
-                creator=request.user,
+                creator=request.user
             )
+            msg = f'Komunitas "{name}" berhasil dibuat!'
+            if is_ajax:
+                return JsonResponse({
+                    'status': 'success',
+                    'message': msg,
+                    'redirect_url':  # arahkan ke discover agar toast muncul
+                        request.build_absolute_uri(
+                            # kalau kamu mau ke detail, ganti ke reverse('community_detail', args=[community.pk])
+                            reverse('discover_communities')
+                        )
+                }, status=200)
+            messages.success(request, msg)
+            # redirect ke discover supaya script toast di template itu bisa tampilkan notifikasi
+            return redirect('discover_communities')
 
-            community.members.add(request.user)
+        except Exception as e:
+            msg = f'Terjadi kesalahan: {str(e)}'
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': msg}, status=500)
+            messages.error(request, msg)
+            return redirect('discover_communities')
 
-            messages.success(request, f"Community '{name}' created successfully.")
-        return redirect("discover_communities")
-    return redirect("discover_communities")
-
+    # GET: tampilkan form seperti biasa (tanpa perubahan)
+    return render(request, 'create_community.html', {
+        'profile': getattr(request.user, 'profile', None)
+    })
 
 
 

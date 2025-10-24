@@ -1017,17 +1017,25 @@ main {
 .bgcommunity {
     text-align: center;
     background-color: var(--navbar-blue);
-    background-image: url('../image/bgcommunity.svg');
-    background-size: cover;
-    background-position: center 50%;
+    background-image: url('../image/bg-my-communities.svg');
+    background-repeat: no-repeat;
+    background-position: center top;
+  
+    /* anti "zoom": lebar gambar mengikuti viewport (min 1024px, max 1920px) */
+    background-size: clamp(1024px, 100vw, 1920px) auto;
+  
+    /* hindari efek "zoom" parallax di mobile */
+    background-attachment: scroll;
+  
     padding: 150px 80px 180px 80px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    overflow: hidden; /* biar pseudo-element blur ga spill */
   }
   
-  .bgcommunity::after {
+  .bgcommunity-discover::after {
     content: "";
     position: absolute;
     left: 0;
@@ -1042,6 +1050,7 @@ main {
       var(--background-blue) 100%
     );
   }
+  
   
   .bgcommunity > .max-w-6xl {
     margin: 0 auto;
@@ -1148,3 +1157,58 @@ main {
     text-align: center;
     flex-direction: column;
 }
+
+
+.main-panel {
+    margin-top: -60px;
+    background-color: rgba(8, 36, 89, 0.85);
+    backdrop-filter: blur(4px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    padding: 3rem;
+    transition: all 0.3s ease;
+  }
+
+  .footer {
+    background-color: var(--background-blue);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 20px 60px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .footer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  /* logo */
+  .footer-logo {
+    width: 120px;
+  }
+  
+  /* contact */
+  .footer-contact {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+  }
+  .footer-contact a {
+    color: var(--lime-green);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .footer-contact a:hover {
+    text-decoration: underline;
+  }
+  
+  /* responsive */
+  @media (max-width: 640px) {
+    .footer-container {
+      flex-direction: column;
+      text-align: center;
+      gap: 8px;
+    }
+  }
+  

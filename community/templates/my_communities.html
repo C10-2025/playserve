@@ -4,7 +4,7 @@
 {% block content %}
 {% include 'navbar.html' %}
 
-<main class="w-full px-4 py-16">
+<main class="bgcommunity w-full px-4 py-16">
   <div class="max-w-6xl mx-auto">
 
     <!-- Title -->
@@ -49,7 +49,6 @@
           <div>
             <h3 class="text-xl font-extrabold mb-2">{{ community.name }}</h3>
             <p class="text-base text-gray-600">{{ community.members.count }} members</p>
-            
             {% if community.description %}
               <p class="text-sm text-gray-700 mt-2">{{ community.description|truncatechars:100 }}</p>
             {% endif %}

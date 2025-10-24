@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from .models import Community, Post, Reply
 from profil.models import Profile
 from django.db.models import Q
+from django.urls import reverse 
 from profil.models import Profile
 
 def main_view(request):
@@ -93,22 +94,23 @@ def create_community(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
-
-        # helper deteksi ajax
         is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
         if not name:
-            msg = 'Nama komunitas harus diisi.'
+            msg = 'Name is required.'
             if is_ajax:
-                return JsonResponse({'status': 'error', 'message': msg}, status=400)
+                return JsonResponse({'status': 'error', 'toast_type': 'error', 'message': msg}, status=400)
             messages.error(request, msg)
             return redirect('discover_communities')
 
         existing = Community.objects.filter(name__iexact=name).first()
         if existing:
-            msg = f'Komunitas dengan nama "{name}" sudah ada. Silakan gunakan nama lain.'
+            msg = f'Community with name "{name}" already exists. Please use a different name.'
             if is_ajax:
-                return JsonResponse({'status': 'error', 'message': msg}, status=400)
+                return JsonResponse(
+                    {'status': 'error', 'toast_type': 'error', 'message': msg, 'code': 'duplicate_name'},
+                    status=409
+                )
             messages.error(request, msg)
             return redirect('discover_communities')
 
@@ -118,33 +120,28 @@ def create_community(request):
                 description=description,
                 creator=request.user
             )
-            msg = f'Komunitas "{name}" berhasil dibuat!'
+            msg = f'Community "{name}" created successfully.'
             if is_ajax:
                 return JsonResponse({
                     'status': 'success',
+                    'toast_type': 'success',
                     'message': msg,
-                    'redirect_url':  # arahkan ke discover agar toast muncul
-                        request.build_absolute_uri(
-                            # kalau kamu mau ke detail, ganti ke reverse('community_detail', args=[community.pk])
-                            reverse('discover_communities')
-                        )
+                    'redirect_url': reverse('discover_communities')
                 }, status=200)
+
             messages.success(request, msg)
-            # redirect ke discover supaya script toast di template itu bisa tampilkan notifikasi
             return redirect('discover_communities')
 
-        except Exception as e:
-            msg = f'Terjadi kesalahan: {str(e)}'
+        except Exception:
+            generic = 'Something went wrong. Please try again.'
             if is_ajax:
-                return JsonResponse({'status': 'error', 'message': msg}, status=500)
-            messages.error(request, msg)
+                return JsonResponse({'status': 'error', 'toast_type': 'error', 'message': generic}, status=500)
+            messages.error(request, generic)
             return redirect('discover_communities')
 
-    # GET: tampilkan form seperti biasa (tanpa perubahan)
     return render(request, 'create_community.html', {
         'profile': getattr(request.user, 'profile', None)
     })
-
 
 
 @login_required

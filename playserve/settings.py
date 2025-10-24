@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'profil',
     'main',
     'review',
-    'matchmaking'
+    'matchmaking',
+    'community',
 ]
 
 MIDDLEWARE = [

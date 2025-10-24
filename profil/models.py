@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Profile(models.Model):
     class Role(models.TextChoices):
@@ -15,17 +17,17 @@ class Profile(models.Model):
         ('Tangerang', 'Tangerang'),
         ('Bekasi', 'Bekasi'),
     ]
-    lokasi = models.CharField(max_length=50, choices=KOTA_CHOICES)
+    lokasi = models.CharField(max_length=50, choices=KOTA_CHOICES, default='Jakarta')
     instagram = models.CharField(max_length=100, blank=True, null=True)
 
     AVATAR_CHOICES = [
-        ('image/avatar1.png', 'Avatar 1'),
-        ('image/avatar2.png', 'Avatar 2'),
-        ('image/avatar3.png', 'Avatar 3'),
-        ('image/avatar4.png', 'Avatar 4'),
-        ('image/avatar5.png', 'Avatar 5'),
+        ('image/avatar1.svg', 'Avatar 1'),
+        ('image/avatar2.svg', 'Avatar 2'),
+        ('image/avatar3.svg', 'Avatar 3'),
+        ('image/avatar4.svg', 'Avatar 4'),
+        ('image/avatar5.svg', 'Avatar 5'),
     ]
-    avatar = models.CharField(max_length=100, choices=AVATAR_CHOICES, default='image/avatar1.png')
+    avatar = models.CharField(max_length=100, choices=AVATAR_CHOICES, default='image/avatar1.svg')
     jumlah_kemenangan = models.PositiveIntegerField(default=0)
 
     @property
@@ -44,3 +46,21 @@ class Profile(models.Model):
 
     def __str__(self):
         return f'{self.user.username} Profile ({self.get_role_display()})'
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        if instance.is_superuser:
+            Profile.objects.create(
+                user=instance,
+                role=Profile.Role.ADMIN,
+                lokasi='Jakarta',
+                avatar='image/avatar1.svg'
+            )
+        else:
+            Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    if hasattr(instance, 'profile'):
+        instance.profile.save()

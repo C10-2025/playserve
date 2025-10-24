@@ -51,10 +51,10 @@
 
         <div class="mobile-menu">
             {% if is_superuser or user_role_lower == 'admin' %}
-                <a href="#">Admin Dashboard</a>
-                <a href="#">Match Review</a>
+                <a href="{% url 'profil:manage_users' %}">User Management</a>
                 <a href="#">Court Management</a>
-                <a href="#">Manage Users</a>
+                <a href="{% url 'discover_communities' %}">Community Moderation</a>
+                <a href="#">Review Management</a>
             {% else %}
                 <a href="{% url 'profil:profile_update' %}" class="user-profile-link-mobile">
                     <div class="avatar-container-mobile">

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from profil.models import Profile
 from community.models import Community
+from review.models import Review
 
 def main_view(request):
     context = {}
@@ -20,10 +21,12 @@ def main_view(request):
             if is_admin_access:
                 total_users = User.objects.count() 
                 total_community = Community.objects.count()
+                total_reviews = Review.objects.count()
 
                 context.update({
                     'total_users': total_users,
                     'total_community': total_community,
+                    'total_reviews': total_reviews
                 })
 
         except Profile.DoesNotExist:

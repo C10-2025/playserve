@@ -47,6 +47,8 @@ def add_review(request):
 def review_list(request):
     lapangans = Lapangan.objects.all()
     context = {'lapangans': lapangans}
+    user_profile = request.user.profile
+    context['profile'] = user_profile
     return render(request, 'review_list.html', context)
 
 

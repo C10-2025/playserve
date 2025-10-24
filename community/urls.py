@@ -14,6 +14,4 @@ urlpatterns = [
     path('<int:community_id>/delete/', views.delete_community, name='delete_community'),
     path('post/<int:post_id>/delete/', views.delete_post, name='delete_post'),
     path('reply/<int:reply_id>/delete/', views.delete_reply, name='delete_reply'),
-
-
 ]

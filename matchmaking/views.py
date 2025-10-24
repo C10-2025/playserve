@@ -63,9 +63,8 @@ def matchmaking_dashboard(request):
 def get_available_users_ajax(request):
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-        
+
     user = request.user
-    
     try:
         user_profile = Profile.objects.get(user=user)
         target_lokasi = user_profile.lokasi
@@ -73,31 +72,33 @@ def get_available_users_ajax(request):
     except Profile.DoesNotExist:
         return JsonResponse({'error': 'User profile not found'}, status=404)
 
-    # Dapatkan semua ID pengguna yang sedang terlibat dalam MatchRequest PENDING dengan user saat ini
     ids_sent_to = MatchRequest.objects.filter(sender=user, status='PENDING').values_list('receiver_id', flat=True)
     ids_received_from = MatchRequest.objects.filter(receiver=user, status='PENDING').values_list('sender_id', flat=True)
     excluded_ids = list(set(list(ids_sent_to) + list(ids_received_from) + [user.id]))
 
-    # Filter lokasi dan Excluded IDs
-    potential_profiles = Profile.objects.select_related('user').filter(
-        lokasi=target_lokasi,
-    ).exclude(user_id__in=excluded_ids).order_by('user__username')
-    
-    # Filter rank dan siapkan data JSON
+    potential_profiles = (
+        Profile.objects.select_related('user')
+        .filter(lokasi=target_lokasi)
+        .exclude(user__is_superuser=True)
+        .exclude(role=Profile.Role.ADMIN)
+        .exclude(user_id__in=excluded_ids)
+        .order_by('user__username')
+    )
+
     available_users = [
         {
-            'user_id': profile.user.id,
-            'username': profile.user.username,
-            'rank': profile.rank,
-            'lokasi': profile.lokasi,
-            'avatar': profile.avatar,
-            'kemenangan': profile.jumlah_kemenangan,
-            'instagram': profile.instagram,
-        } 
-        for profile in potential_profiles 
-        if profile.rank == target_rank
+            'user_id': p.user.id,
+            'username': p.user.username,
+            'rank': p.rank,
+            'lokasi': p.lokasi,
+            'avatar': p.avatar,
+            'kemenangan': p.jumlah_kemenangan,
+            'instagram': p.instagram,
+        }
+        for p in potential_profiles
+        if p.rank == target_rank
     ]
-    
+
     return JsonResponse({'users': available_users})
 
 # Menampilkan users yang memberi request

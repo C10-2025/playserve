@@ -176,7 +176,7 @@ body {
 
 <script>
 function toggleReviewForm(lapanganId) {
-  // Require a lapangan id — we do not support opening the generic form anymore.
+  // Require a lapangan id
   if (!lapanganId) return;
   const container = document.getElementById('add-review-container');
   if (!container) return;
@@ -211,10 +211,26 @@ function viewComments(lapanganId) {
   if (!container) return;
   const lapId = parseInt(lapanganId, 10);
   const url = '{% url "review:view_comments" 0 %}'.replace('/0/', '/' + lapId + '/');
+
   fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     .then(resp => resp.text())
     .then(html => {
+      // Insert HTML
       container.innerHTML = html;
+
+      // Execute scripts inside the returned HTML (so functions like deleteComment are available)
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        if (script.src) {
+          newScript.src = script.src;
+        } else {
+          newScript.textContent = script.textContent;
+        }
+        document.body.appendChild(newScript);
+        // remove the original script tag to avoid duplication
+        script.remove();
+      });
     })
     .catch(() => alert('Failed to load comments.'));
 }

@@ -14,8 +14,9 @@
                 {% if is_superuser or user_role_lower == 'admin' %}
                     <a href="{% url 'profil:manage_users' %}" class="italic">User Management</a>
                     <a href="#" class="italic">Court Management</a>
-                    <a href="{% url 'discover_communities' %}" class="italic">Community Moderation</a>
-                    <a href="#" class="italic">Review Management</a>
+                    <a href="#" class="italic">Community Moderation</a>
+                    <a href="{% url 'review:review_list' %}" class="italic">Review Management</a>
+                    <!--NOTE: Fitur penghapusan comment terintegrasi di review_list-->
                 {% else %}
                     <a href="{% url 'matchmaking:dashboard' %}" class="italic">Match Making</a>
                     <a href="{% url 'booking:field_list' %}" class="italic">Book Courts</a>

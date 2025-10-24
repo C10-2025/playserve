@@ -19,12 +19,11 @@
                     <!--NOTE: Fitur penghapusan comment terintegrasi di review_list-->
                 {% else %}
                     <a href="{% url 'matchmaking:dashboard' %}" class="italic">Match Making</a>
-                    <a href="#" class="italic">Book Courts</a>
+                    <a href="{% url 'booking:field_list' %}" class="italic">Book Courts</a>
                     <a href="{% url 'discover_communities' %}" class="italic">Community</a>
                     <a href="{% url 'review:review_list' %}" class="italic">Court Reviews</a>
                 {% endif %}
             </div>
-
 
             <div class="nav-buttons">
                 {% if is_superuser or user_role_lower == 'admin' %}
@@ -53,13 +52,13 @@
 
         <div class="mobile-menu">
             {% if is_superuser or user_role_lower == 'admin' %}
-                <a href="#">Admin Dashboard</a>
-                <a href="#">Match Review</a>
+                <a href="{% url 'profil:manage_users' %}">User Management</a>
                 <a href="#">Court Management</a>
-                <a href="#">Manage Users</a>
+                <a href="{% url 'discover_communities' %}">Community Moderation</a>
+                <a href="#">Review Management</a>
             {% else %}
                 <a href="{% url 'profil:profile_update' %}" class="user-profile-link-mobile">
-                    <div class="avatar-container">
+                    <div class="avatar-container-mobile">
                         <img src="{% static profile.avatar %}" alt="Avatar" class="profile-avatar">
                         {% if profile.rank %}<img src="{% static 'image/'|add:profile.rank|lower|add:'.svg' %}" alt="Rank" class="rank-badge">{% endif %}
                     </div>
@@ -69,8 +68,9 @@
                     </div>
                 </a>
                 <hr class="mobile-menu-divider">
+                <a href="{% url 'booking:my_bookings' %}">📅 My Bookings</a>
                 <a href="{% url 'matchmaking:dashboard' %}">Match Making</a>
-                <a href="#">Book Courts</a>
+                <a href="{% url 'booking:field_list' %}">Book Courts</a>
                 <a href="{% url 'discover_communities' %}">Community</a>
                 <a href="{% url 'review:review_list' %}">Court Reviews</a>
             {% endif %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+        <!-- Success Icon -->
+        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-4xl">✅</span>
+        </div>
+
+        <!-- Success Message -->
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Booking Created Successfully!</h1>
+        <p class="text-gray-600 mb-6">Your booking has been submitted and is awaiting payment confirmation.</p>
+
+        <!-- Booking Details -->
+        <div class="bg-gray-50 rounded-lg  text-gray-900 p-6 mb-8 text-left">
+            <h2 class="text-xl font-bold mb-4">📋 Booking Details</h2>
+
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Booking ID:</span>
+                    <span class="font-mono font-semibold">#{{ booking.id }}</span>
+                </div>
+
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Court:</span>
+                    <span class="font-semibold">{{ booking.field.name }}</span>
+                </div>
+
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Date:</span>
+                    <span class="font-semibold">{{ booking.booking_date|date:"l, F j, Y" }}</span>
+                </div>
+
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Time:</span>
+                    <span class="font-semibold">{{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</span>
+                </div>
+
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Duration:</span>
+                    <span class="font-semibold">{{ booking.duration_hours }} hour{{ booking.duration_hours|pluralize }}</span>
+                </div>
+
+                <div class="flex justify-between border-t pt-3">
+                    <span class="text-gray-600 font-semibold">Total Amount:</span>
+                    <span class="text-xl font-bold text-green-600">Rp {{ booking.total_price|floatformat:0 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Information -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+            <div class="flex items-center mb-2">
+                <span class="text-blue-600 mr-2">⏳</span>
+                <h3 class="font-semibold text-blue-800">Awaiting Payment Confirmation</h3>
+            </div>
+            <p class="text-blue-700 text-sm">
+                We'll verify your payment within 1-2 hours. You'll receive an email confirmation once your booking is approved.
+            </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-3">
+            <a href="{% url 'booking:my_bookings' %}"
+               class="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-semibold">
+                📅 View My Bookings
+            </a>
+
+            <a href="{% url 'booking:field_list' %}"
+               class="block w-full bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">
+                🎾 Book Another Court
+            </a>
+
+            <a href="{% url 'main:home' %}"
+               class="block w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition">
+                🏠 Back to Home
+            </a>
+        </div>
+
+        <!-- Help Information -->
+        <div class="mt-8">
+        <p class="!text-sm text-gray-600">
+            Questions about your booking?
+            <a href="mailto:support@playserve.com" class="!text-sm text-green-600 hover:underline">
+            Contact Support
+            </a>
+        </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

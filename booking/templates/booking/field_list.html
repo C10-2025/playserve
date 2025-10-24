@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<div class="container mx-auto px-16 py-8">
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-white mb-2 text-center">
+            Find Your <span style="color: #C1D752;">Perfect Court</span>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <form method="get" class="space-y-4">
+            <!-- Search Bar -->
+            <div>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search_query }}"
+                    placeholder="Search courts by name or location..."
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
+                />
+            </div>
+
+            <!-- Filters Row -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- City Filter -->
+                <select name="city" class="border border-gray-300 rounded-lg px-4 py-2 text-gray-900">
+                    <option value="">All Cities</option>
+                    {% for value, label in cities %}
+                    <option value="{{ value }}" {% if selected_city == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <!-- Price Range -->
+                <div class="flex items-center space-x-2">
+                    <input
+                        type="number"
+                        name="price_min"
+                        placeholder="Min Price"
+                        class="border border-gray-300 rounded-lg px-3 py-2 w-full text-gray-900"
+                    />
+                    <span>-</span>
+                    <input
+                        type="number"
+                        name="price_max"
+                        placeholder="Max Price"
+                        class="border border-gray-300 rounded-lg px-3 py-2 w-full text-gray-900"
+                    />
+                </div>
+
+                <!-- Features -->
+                <div class="flex items-center space-x-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="has_lights" value="true" class="mr-2" />
+                        <span class="text-sm text-gray-900">Lights</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="has_backboard" value="true" class="mr-2" />
+                        <span class="text-sm text-gray-900">Backboard</span>
+                    </label>
+                </div>
+
+                <!-- Sort -->
+                <select name="sort" class="border border-gray-300 rounded-lg px-4 py-2 text-gray-900">
+                    <option value="name">Sort by Name</option>
+                    <option value="price_low">Price: Low to High</option>
+                    <option value="price_high">Price: High to Low</option>
+                </select>
+            </div>
+
+            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+                Apply Filters
+            </button>
+        </form>
+    </div>
+
+    <!-- Courts Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for field in fields %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition">
+            <!-- Court Image -->
+            <div class="h-48 bg-gradient-to-br from-green-400 to-green-600 relative">
+                {% if field.image_url %}
+                <img src="{{ field.image_url }}" alt="{{ field.name }}" class="w-full h-full object-cover" />
+                {% elif field.court_image %}
+                <img src="{{ field.court_image.url }}" alt="{{ field.name }}" class="w-full h-full object-cover" />
+                {% else %}
+                <div class="flex items-center justify-center h-full">
+                    <span class="text-white text-6xl">🎾</span>
+                </div>
+                {% endif %}
+
+                <!-- Features Badges -->
+                <div class="absolute top-2 right-2 space-y-1">
+                    {% if field.has_lights %}
+                    <span class="bg-yellow-400 text-xs px-2 py-1 rounded-full block">💡 Lights</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Court Info -->
+            <div class="p-4">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">{{ field.name }}</h3>
+                <p class="text-gray-600 text-sm mb-2 flex items-start">
+                    <span class="mr-2">📍</span>
+                    <span>{{ field.city }}, {{ field.address|truncatewords:10 }}</span>
+                </p>
+
+                <div class="flex items-center justify-between text-sm text-gray-600 mb-3">
+                    <span>🎾 {{ field.number_of_courts }} court{{ field.number_of_courts|pluralize }}</span>
+                    <span>{{ field.get_court_surface_display }}</span>
+                </div>
+
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-2xl font-bold text-green-600">Rp {{ field.price_per_hour|floatformat:0|intcomma }}</p>
+                        <p class="text-xs text-gray-500">per hour</p>
+                    </div>
+                </div>
+
+                <a href="{% url 'booking:field_detail' field.pk %}"
+                   class="block w-full bg-green-600 text-white text-center py-2 rounded-lg hover:bg-green-700 transition">
+                    BOOK NOW
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-500 text-lg">No courts found matching your criteria.</p>
+            <a href="{% url 'booking:field_list' %}" class="text-green-600 hover:underline mt-2 inline-block">
+                Clear filters
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+        <nav class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page=1" class="px-3 py-2 border rounded">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 border rounded">Previous</a>
+            {% endif %}
+
+            <span class="px-3 py-2 border rounded bg-green-600 text-white">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 border rounded">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 border rounded">Last</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

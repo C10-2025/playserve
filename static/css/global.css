@@ -179,6 +179,32 @@ a {
     max-width: 600px;
 }
 
+.upper-main-admin {
+    text-align: left;
+    background-color: var(--navbar-blue);
+    background-image: url('../image/background_landing.svg');
+    background-size: cover;
+    background-position: center 50%;
+    padding: 150px 80px 100px 80px;
+}
+
+.upper-main-admin h1{
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.upper-main-admin p{
+    font-size: 1.55rem;
+    line-height: 1.6;
+    color: var(--off-white);
+    margin-bottom: 30px;
+    text-align: left;
+    max-width: 600px;
+}
+
 .nav-links a {
     font-size: 1.2rem;
     font-weight: 500;
@@ -493,8 +519,7 @@ main {
     border-radius: 14px;
     padding: 2.25rem 2rem;
     margin: 2rem auto;
-    max-width: 1200px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.05);
+    max-width: 1350px;
 }
 
 .content-box{
@@ -527,7 +552,7 @@ main {
 
 .info-visuals img{
     width: 100%;
-    max-width: 420px;
+    max-width: 480px;
     height: auto;
 }
 
@@ -775,6 +800,16 @@ main {
     align-items: center;
 }
 
+.avatar-container-mobile {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    background-color: var(--white-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .profile-avatar {
     width: 100%;
     height: 100%;
@@ -807,7 +842,7 @@ main {
     margin-bottom: 15px;
 }
 
-.user-profile-link-mobile .avatar-container {
+.user-profile-link-mobile .avatar-container, .avatar-container-mobile {
     width: 50px;
     height: 50px;
     position: relative;
@@ -891,10 +926,10 @@ main {
     gap: 20px;
 }
 
-.avatar-edit-column .avatar-container {
+.avatar-edit-column .avatar-container, .avatar-container-mobile {
     width: 150px;
     height: 150px;
-    border: 5px solid var(--lime-green);
+    border: 4px solid var(--lime-green);
     border-radius: 100%;
 
 }
@@ -968,8 +1003,10 @@ main {
         gap: 15px;
     }
 
-    .avatar-edit-column .avatar-container {
+    .avatar-edit-column .avatar-container, .avatar-container-mobile {
         margin: 0 auto 15px auto;
+        width: 100px;
+        height: 100px;
     }
 
     .fields-column {
@@ -989,9 +1026,9 @@ main {
         margin-bottom: 30px;
     }
     
-    .avatar-edit-column .avatar-container {
-        width: 120px;
-        height: 120px;
+    .avatar-edit-column .avatar-container, .avatar-container-mobile {
+        width: 75px;
+        height: 75px;
     }
     
     .avatar-edit-column .rank-badge {
@@ -1017,17 +1054,25 @@ main {
 .bgcommunity {
     text-align: center;
     background-color: var(--navbar-blue);
-    background-image: url('../image/bgcommunity.svg');
-    background-size: cover;
-    background-position: center 50%;
+    background-image: url('../image/bg-my-communities.svg');
+    background-repeat: no-repeat;
+    background-position: center top;
+  
+    /* anti "zoom": lebar gambar mengikuti viewport (min 1024px, max 1920px) */
+    background-size: clamp(1024px, 100vw, 1920px) auto;
+  
+    /* hindari efek "zoom" parallax di mobile */
+    background-attachment: scroll;
+  
     padding: 150px 80px 180px 80px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    overflow: hidden; /* biar pseudo-element blur ga spill */
   }
   
-  .bgcommunity::after {
+  .bgcommunity-discover::after {
     content: "";
     position: absolute;
     left: 0;
@@ -1042,6 +1087,7 @@ main {
       var(--background-blue) 100%
     );
   }
+  
   
   .bgcommunity > .max-w-6xl {
     margin: 0 auto;
@@ -1065,12 +1111,11 @@ main {
   .bgcommunity .btn-hero {
     margin-top: 28px;
     padding: 16px 36px;
-    font-size: 1.25rem;
-    border-radius: 12px;
+    font-size: 1.4rem;
+    border-radius: 10px;
     background-color: var(--lime-green);
     color: var(--dark-text);
     border-color: var(--lime-green);
-    box-shadow: 0 6px 14px rgba(193, 215, 82, 0.35);
     transition: all 0.25s ease;
   }
   
@@ -1148,3 +1193,58 @@ main {
     text-align: center;
     flex-direction: column;
 }
+
+
+.main-panel {
+    margin-top: -60px;
+    background-color: rgba(8, 36, 89, 0.85);
+    backdrop-filter: blur(4px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    padding: 3rem;
+    transition: all 0.3s ease;
+  }
+
+  .footer {
+    background-color: var(--navbar-blue);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 20px 60px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .footer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  /* logo */
+  .footer-logo {
+    width: 120px;
+  }
+  
+  /* contact */
+  .footer-contact {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+  }
+  .footer-contact a {
+    color: var(--lime-green);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .footer-contact a:hover {
+    text-decoration: underline;
+  }
+  
+  /* responsive */
+  @media (max-width: 640px) {
+    .footer-container {
+      flex-direction: column;
+      text-align: center;
+      gap: 8px;
+    }
+  }
+  

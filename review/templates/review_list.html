@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<style>
+body {
+  background: url('/static/image/background.svg') no-repeat center center fixed;
+  background-size: cover;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Apply main text color only to content area */
+.review-section {
+  color: #1a2b4c;
+}
+
+/* --- Review Section --- */
+.review-section {
+  max-width: 850px;
+  margin: 60px auto;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  padding: 42px 48px;
+}
+
+/* --- Header --- */
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #e5e5e5;
+  padding-bottom: 14px;
+  margin-bottom: 32px;
+}
+
+.review-header h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a2b4c;
+  letter-spacing: 0.4px;
+}
+
+/* --- Button --- */
+.add-review-btn {
+  background: #b0d235;
+  color: #1a2b4c;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 22px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+.add-review-btn:hover {
+  background: #a2c52e;
+  transform: translateY(-1px);
+}
+
+/* --- Cards --- */
+.review-card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.05);
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.review-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+}
+
+.review-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.review-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.review-rating {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  color: #FFD700;
+}
+
+/* --- Comment Text --- */
+.review-komentar {
+  font-size: 0.97rem;
+  color: #333;
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 12px 15px;
+  line-height: 1.6;
+}
+
+/* --- Empty State --- */
+.no-reviews {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  margin-top: 20px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .review-section {
+    padding: 28px;
+  }
+  .review-header h2 {
+    font-size: 1.3rem;
+  }
+  .review-card {
+    padding: 18px 20px;
+  }
+}
+</style>
+
+<div class="review-section">
+  <div class="review-header">
+    <h2>Daftar Review Lapangan</h2>
+  </div>
+
+  <div id="add-review-container"></div>
+
+  <div>
+    {% for lapangan in lapangans %}
+      <div class="review-card">
+        <div class="review-card-header">
+          <div style="display:flex; gap:12px; align-items:center">
+            {% if lapangan.thumbnail %}
+              <img src="{{ lapangan.thumbnail }}" alt="thumb" style="width:64px;height:64px;border-radius:8px;object-fit:cover;margin-right:8px">
+            {% endif %}
+            <div>
+              <div class="review-title">{{ lapangan.nama }}</div>
+              <div style="font-size:0.9rem;color:#556">{{ lapangan.lokasi }} • Rp {{ lapangan.harga }}</div>
+            </div>
+          </div>
+          <div>
+            <button class="add-review-btn" style="margin-right:8px" onclick="toggleReviewForm('{{ lapangan.id }}')">Add Review</button>
+            <button class="add-review-btn" style="background:#fff;color:#1a2b4c;border:1px solid #d6e8c5" onclick="viewComments('{{ lapangan.id }}')">View Comments</button>
+          </div>
+        </div>
+
+        <div class="review-komentar">Latest reviews preview:
+          {% with comments=lapangan.review_set.all|slice:":2" %}
+            {% if comments %}
+              <ul style="margin:8px 0; padding-left:18px">
+                {% for c in comments %}
+                  <li style="margin-bottom:6px">{% for i in "12345" %}{% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}{% endfor %} — {{ c.komentar|truncatechars:60 }}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div style="color:#777; margin-top:8px">No reviews yet.</div>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    {% empty %}
+      <p class="no-reviews">No lapangans found.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+function toggleReviewForm(lapanganId) {
+  // Require a lapangan id — we do not support opening the generic form anymore.
+  if (!lapanganId) return;
+  const container = document.getElementById('add-review-container');
+  if (!container) return;
+
+  const existingModal = document.getElementById('review-form-container');
+  if (existingModal) {
+    existingModal.remove();
+    return;
+  }
+
+  // ensure lapanganId is a number
+  const lapId = parseInt(lapanganId, 10);
+  const url = '{% url "review:add_review" %}' + '?lapangan=' + lapId;
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(resp => resp.text())
+    .then(html => {
+      container.innerHTML = html;
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        if (script.src) newScript.src = script.src;
+        else newScript.textContent = script.textContent;
+        document.body.appendChild(newScript);
+        script.remove();
+      });
+    })
+    .catch(() => alert('Gagal memuat form.'));
+}
+
+function viewComments(lapanganId) {
+  const container = document.getElementById('add-review-container');
+  if (!container) return;
+  const lapId = parseInt(lapanganId, 10);
+  const url = '{% url "review:view_comments" 0 %}'.replace('/0/', '/' + lapId + '/');
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(resp => resp.text())
+    .then(html => {
+      container.innerHTML = html;
+    })
+    .catch(() => alert('Failed to load comments.'));
+}
+</script>
+{% endblock %}

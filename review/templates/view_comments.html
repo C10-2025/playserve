@@ -1,0 +1,58 @@
+{% load static %}
+
+<div id="view-comments-container">
+
+<style>
+.comment-modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.comment-modal {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 520px;
+  padding: 24px;
+  position: relative;
+  border: 2px solid #d6e8c5;
+  font-family: "Poppins", sans-serif;
+}
+.close-btn { position: absolute; top: 12px; right: 16px; background:none; border:none; font-size:26px; cursor:pointer }
+.comment-item { background:#f7f7f7; border-radius:10px; padding:12px 14px; margin-bottom:10px }
+.comment-stars { color:#FFD700; font-size:1.1rem; margin-bottom:6px }
+.empty { text-align:center; color:#777; font-style:italic }
+</style>
+
+<div class="comment-modal-overlay">
+  <div class="comment-modal">
+    <button class="close-btn" onclick="document.getElementById('view-comments-container').remove()">×</button>
+    <h3 style="margin-top:6px;">Comments for {{ lapangan.nama }}</h3>
+    <p style="color:#556; margin-bottom:12px">Location: {{ lapangan.lokasi }} • Price: Rp {{ lapangan.harga }}</p>
+
+    <div>
+      {% if comments %}
+        {% for c in comments %}
+          <div class="comment-item">
+            <div class="comment-stars">
+              {% for i in "12345" %}
+                {% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}
+              {% endfor %}
+            </div>
+            <div class="comment-text">{{ c.komentar }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">No comments yet for this lapangan.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+</div>

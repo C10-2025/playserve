@@ -1,3 +1,62 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from review.forms import ReviewForm
+from django.http import JsonResponse, HttpResponse
+from django.template.loader import render_to_string
+from review.models import Review
+from main.models import Lapangan
 
-# Create your views here.
+
+def add_review(request):
+    # POST: create a review (AJAX expected)
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save()
+            return JsonResponse({
+                'status': 'success',
+                'toast_type': 'success',
+                'message': 'Review added successfully.'
+            })
+
+        return JsonResponse({
+            'status': 'error',
+            'errors': dict(form.errors),
+            'toast_type': 'error',
+            'message': 'Failed to add review.'
+        }, status=400)
+
+    # GET: render AJAX form. Expect optional lapangan id as ?lapangan=ID
+    lapangan = None
+    lapangan_id = request.GET.get('lapangan')
+    if lapangan_id:
+        lapangan = get_object_or_404(Lapangan, pk=lapangan_id)
+
+    form = ReviewForm()
+    context = {
+        'form': form,
+        'lapangan': lapangan
+    }
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        html = render_to_string('add_review.html', context, request=request)
+        return HttpResponse(html)
+
+    return redirect('review:review_list')
+
+
+def review_list(request):
+    lapangans = Lapangan.objects.all()
+    context = {'lapangans': lapangans}
+    return render(request, 'review_list.html', context)
+
+
+def view_comments(request, lapangan_id):
+    lapangan = get_object_or_404(Lapangan, pk=lapangan_id)
+    comments = Review.objects.filter(lapangan=lapangan).order_by('-id')
+    context = {'lapangan': lapangan, 'comments': comments}
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        html = render_to_string('view_comments.html', context, request=request)
+        return HttpResponse(html)
+
+    return redirect('review:review_list')

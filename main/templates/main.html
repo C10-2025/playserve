@@ -10,9 +10,97 @@
     {% if user.is_superuser or profile.role == 'ADMIN' %}
         <main>
             <section class="upper-main">
-                <h1>COURTSIDE CONTROL</h1>
+                <div class="text-left mb-8">
+                    <h2 class="text-6xl font-extrabold text-white uppercase">COURTSIDE</h2>
+                </div>
+                <div class="text-left mb-8">
+                    <h2 class="text-6xl font-extrabold uppercase" style="color: var(--lime-green)">CONTROL</h2>
+                </div>
                 <p>Central hub to manage the PlayServe platform and its community.</p>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
             </section>
+
+            <section class="admin-content-wrapper" style="padding: 0px 50px;">
+                <div class="content-box-admin">
+
+                    <div class="col-span-2 text-center mb-8">
+                        <h2 class="text-5xl font-extrabold text-white uppercase">Control Panel</h2>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-x-8 gap-y-10 w-full text-center">
+                        
+                        <div class="management-item flex flex-col items-center p-3">
+                            <a href="#" class="flex flex-col items-center w-full hover:scale-105 transition duration-200">
+                                <img src="{% static 'image/locator.svg' %}" alt="Manage Courts" class="w-28 h-28 mb-8">
+                                <h3 class="text-2xl font-semibold text-white">Manage Courts</h3>
+                            </a>
+                        </div>
+                        
+                        <div class="management-item flex flex-col items-center p-3">
+                            <a href="{% url 'profil:manage_users' %}" class="flex flex-col items-center w-full hover:scale-105 transition duration-200">
+                                <img src="{% static 'image/people.svg' %}" alt="Manage Users" class="w-28 h-28 mb-8">
+                                <h3 class="text-2xl font-semibold text-white">Manage Users</h3>
+                            </a>
+                        </div>
+                        
+                        <div class="management-item flex flex-col items-center p-3">
+                            <a href="#" class="flex flex-col items-center w-full hover:scale-105 transition duration-200">
+                                <img src="{% static 'image/chat.svg' %}" alt="Moderate Communities" class="w-28 h-28 mb-8">
+                                <h3 class="text-2xl font-semibold text-white">Moderate Communities</h3>
+                            </a>
+                        </div>
+                        
+                        <div class="management-item flex flex-col items-center p-3">
+                            <a href="#" class="flex flex-col items-center w-full hover:scale-105 transition duration-200">
+                                <img src="{% static 'image/review.svg' %}" alt="Manage Reviews" class="w-28 h-28 mb-8">
+                                <h3 class="text-2xl font-semibold text-white">Manage Reviews</h3>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="content-box-admin">
+                    
+                    <div class="grid grid-cols-2 gap-4 w-full"> 
+                        
+                        <div class="col-span-2 text-center mb-8">
+                            <h2 class="text-5xl font-extrabold text-white uppercase">QUICK STATS</h2>
+                        </div>
+
+                        <div class="stats-box p-12 rounded-lg text-center" style="background-color: #264782;">
+                            <p class="text-white text-2xl">TOTAL USERS</p>
+                            <br>
+                            <p class="text-white text-4xl font-bold">{{ total_users }}</p>
+                        </div>
+                        
+                        <div class="stats-box p-12 rounded-lg text-center" style="background-color: #264782;">
+                            <p class="text-white text-2xl">COMMUNITIES</p>
+                            <br>
+                            <p class="text-white text-4xl font-bold">{{ total_community }}</p>
+                        </div>
+                        
+                        <div class="stats-box p-12 rounded-lg text-center" style="background-color: #264782;">
+                            <p class="text-white text-2xl">ACTIVE COURTS</p>
+                            <br>
+                            <p class="text-white text-4xl font-bold">12</p>
+                        </div>
+                        
+                        <div class="stats-box p-12 rounded-lg text-center" style="background-color: #264782;">
+                            <p class="text-white text-2xl">TOTAL REVIEWS</p>
+                            <br>
+                            <p class="text-white text-4xl font-bold">250+</p>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <section style="padding: 85px 50px;"></section>
         </main>
 
     {% else %}
@@ -30,8 +118,8 @@
             <section>
                 <div class="content-box">
                     <div class="info-text">
-                        <h2 class="p-wide">YOUR NEXT MATCH AWAITS</h2>
-                        <p class="p-wide">Finding a game has never been this easy or this fast. Simply find a player, book the court, and get playing. Challenge opponents in your area, record your victories, and watch yourself climb the local ranks.</p>
+                        <h2>YOUR NEXT MATCH AWAITS</h2>
+                        <p>Finding a game has never been this easy or this fast. Simply find a player, book the court, and get playing.</p>
                     </div>
                     
                     <div class="info-visuals">
@@ -69,9 +157,11 @@
                         </section>
 
                     {% else %}
-                        <h2 class="p-wide">READY TO SERVE?</h2>
-                        <p class="p-wide">Join thousands of players and find your next match by signing up for free</p>
-                        <a href="{% url 'profil:register1' %}" class="btn">SIGN UP FOR FREE</a>
+                        <section class="sign-up">
+                            <h2>READY TO SERVE?</h2>
+                            <p>Join thousands of players and find your next match by signing up for free</p>
+                            <a href="{% url 'profil:register1' %}" class="btn">SIGN UP FOR FREE</a>
+                        </section>
                     {% endif %}
                 </div>
             </section>

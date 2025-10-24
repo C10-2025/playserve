@@ -32,15 +32,21 @@ def register2(request):
         form = RegistrationFormStep2(request.POST)
         if form.is_valid():
             user_data = request.session['registration_data']
-            
+            username = user_data['username']
+           
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'status': 'error', 'message': 'This username has already been taken.'}, status=400)
             user = User.objects.create_user(
-                username=user_data['username'],
+                username=username,
                 password=user_data['password']
             )
-            
-            profile = form.save(commit=False) 
-            profile.user = user
+           
+            profile = user.profile
+            profile.lokasi = form.cleaned_data['lokasi']
+            profile.instagram = form.cleaned_data.get('instagram', '')
+            profile.avatar = form.cleaned_data['avatar']
             profile.save()
+            
             del request.session['registration_data']
             login(request, user)
             
@@ -51,6 +57,7 @@ def register2(request):
             })
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid data provided.', 'errors': form.errors}, status=400)
+            
     return render(request, 'register2.html')
 
 def login_ajax(request):

@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib import messages
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models import Q
@@ -328,6 +328,38 @@ class AdminTestMixin(UserPassesTestMixin):
         return hasattr(self.request.user, 'profile') and self.request.user.profile.role == 'ADMIN'
 
 
+def admin_court_management(request):
+    """Custom admin dashboard for court and booking management - similar to community my_communities"""
+    is_admin = hasattr(request.user, 'profile') and request.user.profile.role == 'ADMIN'
+
+    if not is_admin:
+        from django.contrib import messages
+        messages.error(request, "Access denied. Admin privileges required.")
+        return redirect('main:home')
+
+    # Get admin's courts
+    courts = PlayingField.objects.filter(created_by=request.user).order_by('-created_at')
+
+    # Stats for admin's courts
+    my_courts = courts
+    all_bookings = Booking.objects.filter(field__in=my_courts)
+
+    context = {
+        'courts': courts,
+        'is_admin': is_admin,
+        'profile': getattr(request.user, 'profile', None) if request.user.is_authenticated else None,
+        'total_courts': my_courts.count(),
+        'active_courts': my_courts.filter(is_active=True).count(),
+        'total_bookings': all_bookings.count(),
+        'pending_verifications': all_bookings.filter(status='PENDING_PAYMENT').count(),
+        'confirmed_bookings': all_bookings.filter(status='CONFIRMED').count(),
+        'total_revenue': sum(b.total_price for b in all_bookings.filter(status__in=['CONFIRMED', 'COMPLETED'])),
+        'recent_bookings': all_bookings.select_related('field', 'user').order_by('-created_at')[:5],
+    }
+
+    return render(request, 'booking/admin_court_management.html', context)
+
+
 class AdminDashboardView(LoginRequiredMixin, AdminTestMixin, ListView):
     """Admin dashboard with stats and overview"""
     model = PlayingField
@@ -366,13 +398,25 @@ class AdminFieldCreateView(LoginRequiredMixin, AdminTestMixin, CreateView):
     form_class = FieldForm
     template_name = 'booking/admin_field_form.html'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user  # Pass user for duplicate validation
+        return kwargs
+
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         messages.success(self.request, 'Court added successfully!')
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('booking:admin_fields')
+        return reverse('booking:admin_court_management')
+
+    def form_invalid(self, form):
+        # Debug form errors
+        print("Form errors:", form.errors)
+        print("Non-field errors:", form.non_field_errors())
+        messages.error(self.request, 'Please correct the errors below.')
+        return super().form_invalid(form)
 
 
 class AdminFieldUpdateView(LoginRequiredMixin, AdminTestMixin, UpdateView):
@@ -384,12 +428,35 @@ class AdminFieldUpdateView(LoginRequiredMixin, AdminTestMixin, UpdateView):
     def get_queryset(self):
         return PlayingField.objects.filter(created_by=self.request.user)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user  # Pass user for duplicate validation
+        return kwargs
+
     def form_valid(self, form):
-        messages.success(self.request, 'Court updated successfully!')
+        messages.success(self.request, f'Court "{form.instance.name}" updated successfully!')
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('booking:admin_fields')
+        return reverse('booking:admin_court_management')
+
+
+class AdminFieldDeleteView(LoginRequiredMixin, AdminTestMixin, DeleteView):
+    """Admin: Delete court (soft delete by deactivating)"""
+    model = PlayingField
+    template_name = 'booking/admin_field_confirm_delete.html'
+    success_url = reverse_lazy('booking:admin_court_management')
+
+    def get_queryset(self):
+        return PlayingField.objects.filter(created_by=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        # Soft delete by deactivating instead of hard delete
+        self.object.is_active = False
+        self.object.save()
+        messages.success(request, f'Court "{self.object.name}" has been deactivated.')
+        return redirect(self.success_url)
 
 
 class AdminFieldListView(LoginRequiredMixin, AdminTestMixin, ListView):

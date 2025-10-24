@@ -13,7 +13,7 @@
             <div class="nav-links">
                 {% if is_superuser or user_role_lower == 'admin' %}
                     <a href="{% url 'profil:manage_users' %}" class="italic">User Management</a>
-                    <a href="#" class="italic">Court Management</a>
+                    <a href="/booking/admin" class="italic"> Court Management</a>
                     <a href="{% url 'discover_communities' %}" class="italic">Community Moderation</a>
                     <a href="#" class="italic">Review Management</a>
                 {% else %}
@@ -53,7 +53,7 @@
             {% if is_superuser or user_role_lower == 'admin' %}
                 <a href="#">Admin Dashboard</a>
                 <a href="#">Match Review</a>
-                <a href="#">Court Management</a>
+                <a href="/admin/booking/">Court Management</a>
                 <a href="#">Manage Users</a>
             {% else %}
                 <a href="{% url 'profil:profile_update' %}" class="user-profile-link-mobile">

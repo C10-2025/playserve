@@ -29,8 +29,8 @@ urlpatterns = [
     path('community/', include('community.urls')),
     path('matchmaking/', include('matchmaking.urls')),
     path('review/', include('review.urls')),
-    path('', include('main.urls')),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

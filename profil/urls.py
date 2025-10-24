@@ -8,5 +8,7 @@ urlpatterns = [
     path('register/step2/', views.register2, name='register2'),
     path('login/', views.login_ajax, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('profile/edit/', views.profile_update_view, name='profile_update'),
+    path('edit/', views.profile_update_view, name='profile_update'),
+    path('admin/users/', views.manage_users_view, name='manage_users'),
+    path('delete-user/<int:user_id>/', views.delete_user_view, name='delete_user'),
 ]

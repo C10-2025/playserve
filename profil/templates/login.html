@@ -4,14 +4,14 @@
 {% block title %}PlayServe - Login{% endblock %}
 
 {% block content %}
-    <div class="auth-page">
+    <div class="background-auth">
         <a href="{% url 'main:home' %}" class="logo-auth">
             <img src="{% static 'image/logo.svg' %}" alt="PlayServe Logo">
         </a>
         <div class="auth-container">
             
-            <h1>READY TO SERVE AGAIN?</h1>
-            <p>Your next opponent and favorite court are waiting.</p>
+            <h1 class="heading1">READY TO SERVE AGAIN?</h1>
+            <p class="text">Your next opponent and favorite court are waiting.</p>
 
             <form id="login-form">
                 {% csrf_token %}
@@ -20,7 +20,6 @@
                 <button type="submit">LET'S SERVE!</button>
             </form>
             
-            <p id="message" class="message"></p>
             <p class="auth-link-text">New Player? <a href="{% url 'profil:register1' %}">Create a New Account</a></p>
         </div>
     </div>
@@ -47,24 +46,16 @@
                 return response.json();
             })
             .then(data => {
-                const messageElement = document.getElementById('message');
-                messageElement.textContent = data.message;
-                
                 if (data.status === 'success') {
-                    messageElement.classList.remove('error');
-                    messageElement.classList.add('success'); 
-                    window.location.href = '/'; 
-                } else {
-                    messageElement.classList.remove('success');
-                    messageElement.classList.add('error');
+                    window.showToast('Success!', data.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || '/'; 
+                    }, 1000); 
                 }
             })
             .catch(error => {
-                const messageElement = document.getElementById('message');
-                messageElement.textContent = error.message || 'An unexpected error occurred.';
-                messageElement.classList.remove('success');
-                messageElement.classList.add('error');
-                console.error('Fetch error:', error);
+                const message = error.message || 'An unexpected error occurred.';
+                window.showToast('Login Failed', message, 'error');
             });
         });
     });

@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<style>
+body {
+  background: url('/static/image/background.svg') no-repeat center center fixed;
+  background-size: cover;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Apply main text color only to content area */
+.review-section {
+  color: #1a2b4c;
+}
+
+/* --- Review Section --- */
+.review-section {
+  max-width: 850px;
+  margin: 60px auto;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  padding: 42px 48px;
+}
+
+/* --- Header --- */
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #e5e5e5;
+  padding-bottom: 14px;
+  margin-bottom: 32px;
+}
+
+.review-header h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a2b4c;
+  letter-spacing: 0.4px;
+}
+
+/* --- Button --- */
+.add-review-btn {
+  background: #b0d235;
+  color: #1a2b4c;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 22px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+.add-review-btn:hover {
+  background: #a2c52e;
+  transform: translateY(-1px);
+}
+
+/* --- Cards --- */
+.review-card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.05);
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.review-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+}
+
+.review-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.review-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.review-rating {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  color: #FFD700;
+}
+
+/* --- Comment Text --- */
+.review-komentar {
+  font-size: 0.97rem;
+  color: #333;
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 12px 15px;
+  line-height: 1.6;
+}
+
+/* --- Empty State --- */
+.no-reviews {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  margin-top: 20px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .review-section {
+    padding: 28px;
+  }
+  .review-header h2 {
+    font-size: 1.3rem;
+  }
+  .review-card {
+    padding: 18px 20px;
+  }
+}
+</style>
+
+<div class="review-section">
+  <div class="review-header">
+    <h2>Daftar Review Lapangan</h2>
+    <button class="add-review-btn" onclick="toggleReviewForm()">Tambah Review</button>
+  </div>
+
+  <div id="add-review-container"></div>
+
+  <div>
+    {% for review in reviews %}
+      <div class="review-card">
+        <div class="review-card-header">
+          <div class="review-title">{{ review.nama_lapangan }}</div>
+          <div class="review-rating">
+            {% for i in "12345" %}
+              {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        <div class="review-komentar">{{ review.komentar }}</div>
+      </div>
+    {% empty %}
+      <p class="no-reviews">Belum ada review untuk lapangan ini.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+function toggleReviewForm() {
+  const container = document.getElementById('add-review-container');
+  if (!container) return;
+
+  const existingModal = document.getElementById('review-form-container');
+  if (existingModal) {
+    existingModal.remove();
+    return;
+  }
+
+  fetch('{% url "review:add_review" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(resp => resp.text())
+    .then(html => {
+      container.innerHTML = html;
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        if (script.src) newScript.src = script.src;
+        else newScript.textContent = script.textContent;
+        document.body.appendChild(newScript);
+        script.remove();
+      });
+    })
+    .catch(() => alert('Gagal memuat form.'));
+}
+</script>
+{% endblock %}

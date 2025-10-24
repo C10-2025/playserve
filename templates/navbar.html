@@ -9,12 +9,12 @@
             <a href="{% url 'matchmaking:dashboard' %}" class="italic">Match Making</a>
             <a href="#" class="italic">Book Courts</a>
             <a href="#" class="italic">Community</a>
-            <a href="#" class="italic">Court Reviews</a>
+            <a href="{% url 'review:review_list' %}" class="italic">Court Reviews</a>
         {% else %}
             <a href="{% url 'profil:login' %}" class="italic">Match Making</a>
             <a href="{% url 'profil:login' %}" class="italic">Book Courts</a>
             <a href="{% url 'profil:login' %}" class="italic">Community</a>
-            <a href="{% url 'profil:login' %}" class="italic">Court Reviews</a>
+            <a href="{% url 'review:review_list' %}" class="italic">Court Reviews</a>
         {% endif %}
     </div>
 

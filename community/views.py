@@ -4,6 +4,17 @@ from django.contrib import messages
 from django.http import JsonResponse
 from .models import Community, Post, Reply
 from django.db.models import Q
+from profil.models import Profile
+
+def main_view(request):
+    context = {}
+    if request.user.is_authenticated:
+        try:
+            context['profile'] = request.user.profile
+        except Profile.DoesNotExist:
+            context['profile'] = None
+            
+    return render(request, 'main.html', context)
 
 def is_admin(user):
     return user.is_staff or user.is_superuser

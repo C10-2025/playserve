@@ -102,7 +102,7 @@
   margin-bottom: 18px;
   box-sizing: border-box;
   resize: none;
-  color: #000; /* make typed text black */
+  color: #000; /* typed text black */
 }
 
 /* placeholder color - subtle gray */
@@ -149,15 +149,17 @@
   <form id="add-review-form" method="post" action="{% url 'review:add_review' %}">
       {% csrf_token %}
 
-      {# lapangan is passed in context for AJAX; include as hidden field #}
-      {% if lapangan %}
-        <input type="hidden" name="lapangan" value="{{ lapangan.id }}">
-        <p style="font-weight:600; margin-bottom:10px;">Leave a review for: <span style="color:#1a2b4c">{{ lapangan.nama }}</span></p>
+      {# field is passed in context for AJAX; include as hidden field #}
+      {% if field %}
+        <input type="hidden" name="field" value="{{ field.id }}">
+        <p style="font-weight:600; margin-bottom:10px;">
+          <span style="color:#1a2b4c">Leave a review for: {{ field.name }}</span>
+        </p>
       {% else %}
-        {# fallback: allow selection if no lapangan provided (optional) #}
-        <label for="lapangan">Court</label>
-        <input type="text" name="lapangan" id="lapangan" class="input-field" placeholder="Court (will be mapped to an existing lapangan id)">
+        <label for="field">Playing Field</label>
+        <input type="text" name="field" id="field" class="input-field" placeholder="Court (will be mapped to an existing field id)">
       {% endif %}
+
 
       <div class="star-section">
         <div id="star-rating" role="radiogroup" aria-label="Rating">
@@ -198,7 +200,7 @@
     s.addEventListener('click', () => setStars(parseInt(s.dataset.value)));
   });
 
-  // ✅ Robust CSRF cookie getter
+  // CSRF cookie getter
   function getCookie(name) {
     const match = document.cookie.match(new RegExp('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'));
     return match ? decodeURIComponent(match[2]) : null;

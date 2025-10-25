@@ -16,6 +16,7 @@
 
 .comment-modal {
   background: #ffffff; /* white background */
+  background: #ffffff; /* white background */
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   width: 90%;
@@ -79,6 +80,7 @@
 
 .empty { 
   text-align:center; 
+  color:#555; /* empty state */
   color:#555; /* empty state */
   font-style:italic; 
 }
@@ -164,6 +166,7 @@ function deleteComment(reviewId) {
         commentsList.innerHTML = '<p class="empty">No comments yet for this field.</p>';
       }
 
+      // Reload to update review preview
       // Reload to update review preview
       setTimeout(() => {
         window.location.reload();

@@ -3,6 +3,7 @@ from review.forms import ReviewForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
+from django.db.models import Q
 
 from review.models import Review
 from booking.models import PlayingField
@@ -100,3 +101,15 @@ def delete_review(request, review_id):
         'toast_type': 'error',
         'message': 'Invalid request method.'
     }, status=400)
+
+# Search bar
+def review_list_search_bar(request):
+    search_query = request.GET.get('search', '')
+    fields = PlayingField.objects.filter(is_active=True)
+
+    if search_query:
+        fields = fields.filter(
+            Q(name__icontains=search_query) | Q(city__icontains=search_query) | Q(address__icontains=search_query)
+        )
+
+    return render(request, 'review_list.html', {'fields': fields})

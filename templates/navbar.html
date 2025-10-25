@@ -11,6 +11,7 @@
             </a>
 
             <div class="nav-links">
+                <!--NOTE: Community moderation masih #-->
                 {% if is_superuser or user_role_lower == 'admin' %}
                     <a href="{% url 'profil:manage_users' %}" class="italic">User Management</a>
                     <a href="#" class="italic">Court Management</a>

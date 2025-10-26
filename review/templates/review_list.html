@@ -9,7 +9,7 @@ body {
   background: url('/static/image/background.svg') no-repeat center center fixed;
   background-size: cover;
   font-family: "Poppins", sans-serif;
-  overflow: hidden; /* prevent full page scrolling */
+  overflow: hidden;
 }
 
 /* --- Review Section Container --- */
@@ -23,7 +23,7 @@ body {
   padding: 42px 48px;
   display: flex;
   flex-direction: column;
-  height: 80vh; /* fixed section height */
+  height: 80vh;
 }
 
 /* --- Header --- */
@@ -35,21 +35,59 @@ body {
   z-index: 2;
   padding-bottom: 14px;
   margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .review-header h2 {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #ffffff; 
+  color: #ffffff;
   margin-bottom: 6px;
   letter-spacing: 0.6px;
 }
 
 .header-divider {
   height: 3px;
-  background: #b0d235; /* green underline */
+  background: #b0d235;
   width: 160px;
   border-radius: 2px;
+}
+
+/* --- Search Bar --- */
+.search-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input {
+  border: 1px solid #b0d235;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background-color: #fff;
+  color: #1a2b4c;
+  font-size: 14px;
+  width: 240px;
+}
+
+.search-btn {
+  background-color: #b0d235;
+  color: #1a2b4c;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+.search-btn:hover {
+  background-color: #a2c52e;
+  transform: translateY(-1px);
 }
 
 /* --- Scrollable Card Container --- */
@@ -151,6 +189,10 @@ body {
     max-width: 95%;
     height: 75vh;
   }
+  .review-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
   .review-header h2 {
     font-size: 1.4rem;
   }
@@ -162,14 +204,28 @@ body {
 
 <div class="review-section">
   <div class="review-header">
-    <h2>
-      {% if request.user.is_staff or request.user.is_superuser %}
-        Review Management
-      {% else %}
-        Playing Field Reviews
-      {% endif %}
-    </h2>
-    <div class="header-divider"></div>
+    <div>
+      <h2>
+        {% if request.user.is_staff or request.user.is_superuser %}
+          Review Management
+        {% else %}
+          Court Reviews
+        {% endif %}
+      </h2>
+      <div class="header-divider"></div>
+    </div>
+
+    <!-- Search Bar -->
+    <form method="get" action="{% url 'review:review_list_search_bar' %}" class="search-form">
+      <input
+        type="text"
+        name="search"
+        placeholder="Search by name or city..."
+        value="{{ request.GET.search }}"
+        class="search-input"
+      />
+      <button type="submit" class="search-btn">🔍</button>
+    </form>
   </div>
 
   <div id="add-review-container"></div>
@@ -184,7 +240,7 @@ body {
             {% endif %}
             <div style="flex:1;">
               <div class="review-title">{{ field.name }}</div>
-              <div class="review-info">{{ field.address }} • Rp {{ field.price_per_hour }}</div>
+              <div class="review-info">{{ field.address }} • Rp {{ field.price_per_hour }}/hr</div>
             </div>
           </div>
           <div>

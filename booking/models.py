@@ -43,7 +43,7 @@ class PlayingField(models.Model):
     owner_name = models.CharField(max_length=100, blank=True)
     owner_contact = models.CharField(max_length=50, blank=True, help_text="Phone/WhatsApp number")
     owner_bank_account = models.CharField(max_length=100, blank=True, help_text="Bank name and account number")
-    owner_qris_image = models.ImageField(upload_to='qris/', blank=True, null=True, help_text="QRIS payment code")
+    # Removed owner_qris_image field - using default static image instead
 
     # Operating Hours
     opening_time = models.TimeField(default=time(6, 0))  # 6 AM

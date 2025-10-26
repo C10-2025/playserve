@@ -4,12 +4,20 @@
 {% block content %}
 {% include 'navbar.html' %}
 
+<style>
+body {
+  background: url('/static/image/background.svg') no-repeat center center fixed;
+  background-size: cover;
+  font-family: "Poppins", sans-serif;
+}
+</style>
+
 <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">📅 My Bookings</h1>
-                <p class="text-gray-600">Manage your tennis court reservations</p>
+                <h1 class="text-3xl font-bold text-white mb-2"> My Bookings</h1>
+                <!-- <p class="text-gray-600">Manage your tennis court reservations</p> -->
             </div>
             <a href="{% url 'booking:field_list' %}"
                class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition inline-flex items-center">

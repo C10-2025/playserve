@@ -4,7 +4,15 @@
 {% block content %}
 {% include 'navbar.html' %}
 
-<div class="container mx-auto px-4 py-8 max-w-2xl">
+<style>
+body {
+  background: url('/static/image/background.svg') no-repeat center center fixed;
+  background-size: cover;
+  font-family: "Poppins", sans-serif;
+}
+</style>
+
+<div class="container mx-auto px-4 py-8 max-w-2xl" id="booking-form-container" data-step="{{ step }}">
     <!-- Progress Indicator -->
     <div class="mb-8">
         <div class="flex items-center justify-between mb-2">
@@ -214,67 +222,78 @@
 </div>
 
 <script>
+// Get the step from data attribute
+const step = document.getElementById('booking-form-container').dataset.step;
+
 // Real-time availability checking for Step 2
-{% if step == '2' %}
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('booking-form');
-    const dateInput = document.querySelector('input[name="booking_date"]');
-    const timeInput = document.querySelector('input[name="start_time"]');
-    const durationRadios = document.querySelectorAll('.duration-radio');
-    const availabilityDiv = document.getElementById('availability-check');
-    const priceDiv = document.getElementById('price-display');
-    const priceDisplay = document.getElementById('total-price');
+if (step === '2') {
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('booking-form');
+        const dateInput = document.querySelector('input[name="booking_date"]');
+        const timeInput = document.querySelector('input[name="start_time"]');
+        const durationRadios = document.querySelectorAll('.duration-radio');
+        const availabilityDiv = document.getElementById('availability-check');
+        const priceDiv = document.getElementById('price-display');
+        const priceDisplay = document.getElementById('total-price');
 
-    function checkAvailability() {
-        const date = dateInput.value;
-        const startTime = timeInput.value;
-        const duration = document.querySelector('.duration-radio:checked')?.value;
+        // Properly escape the Django variable
+        const pricePerHour = parseFloat('{{ field.price_per_hour }}');
 
-        if (date && startTime && duration) {
-            // Calculate end time
-            const [hours, minutes] = startTime.split(':');
-            const startDate = new Date();
-            startDate.setHours(parseInt(hours), parseInt(minutes));
-            const endDate = new Date(startDate.getTime() + parseFloat(duration) * 60 * 60 * 1000);
-            const endTime = endDate.toTimeString().slice(0, 5);
+        function checkAvailability() {
+            const date = dateInput.value;
+            const startTime = timeInput.value;
+            const duration = document.querySelector('.duration-radio:checked')?.value;
 
-            // Check availability via AJAX
-            fetch(`/booking/check-availability/?field_id={{ field.id }}&date=${date}&start_time=${startTime}&end_time=${endTime}`)
-                .then(response => response.json())
-                .then(data => {
-                    availabilityDiv.classList.remove('hidden');
-                    if (data.available) {
-                        availabilityDiv.className = 'mb-4 p-3 rounded-lg bg-green-100 border border-green-300';
-                        availabilityDiv.innerHTML = '<span class="text-green-800">✅ ' + data.message + '</span>';
+            if (date && startTime && duration) {
+                // Calculate end time
+                const [hours, minutes] = startTime.split(':');
+                const startDate = new Date();
+                startDate.setHours(parseInt(hours), parseInt(minutes));
+                const endDate = new Date(startDate.getTime() + parseFloat(duration) * 60 * 60 * 1000);
+                const endTime = endDate.toTimeString().slice(0, 5);
 
-                        // Show price
-                        const totalPrice = {{ field.price_per_hour }} * parseFloat(duration);
-                        priceDisplay.textContent = 'Rp ' + totalPrice.toLocaleString('id-ID');
-                        priceDiv.classList.remove('hidden');
-                    } else {
+                // Check availability via AJAX
+                fetch(`/booking/check-availability/?field_id={{ field.id }}&date=${date}&start_time=${startTime}&end_time=${endTime}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        availabilityDiv.classList.remove('hidden');
+                        if (data.available) {
+                            availabilityDiv.className = 'mb-4 p-3 rounded-lg bg-green-100 border border-green-300';
+                            availabilityDiv.innerHTML = '<span class="text-green-800">✅ ' + data.message + '</span>';
+
+                            // Show price - use the properly escaped variable
+                            const totalPrice = pricePerHour * parseFloat(duration) * 1000;
+                            priceDisplay.textContent = 'Rp ' + totalPrice.toLocaleString('id-ID');
+                            priceDiv.classList.remove('hidden');
+                        } else {
+                            availabilityDiv.className = 'mb-4 p-3 rounded-lg bg-red-100 border border-red-300';
+                            availabilityDiv.innerHTML = '<span class="text-red-800">❌ ' + data.message + '</span>';
+                            priceDiv.classList.add('hidden');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Availability check failed:', error);
                         availabilityDiv.className = 'mb-4 p-3 rounded-lg bg-red-100 border border-red-300';
-                        availabilityDiv.innerHTML = '<span class="text-red-800">❌ ' + data.message + '</span>';
-                        priceDiv.classList.add('hidden');
-                    }
-                });
-        }
-    }
-
-    dateInput.addEventListener('change', checkAvailability);
-    timeInput.addEventListener('change', checkAvailability);
-    durationRadios.forEach(radio => radio.addEventListener('change', checkAvailability));
-
-    // Style selected duration radio
-    durationRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            durationRadios.forEach(r => r.parentElement.classList.remove('border-green-600', 'bg-green-50'));
-            if (this.checked) {
-                this.parentElement.classList.add('border-green-600', 'bg-green-50');
+                        availabilityDiv.innerHTML = '<span class="text-red-800">❌ Error checking availability</span>';
+                    });
             }
+        }
+
+        dateInput.addEventListener('change', checkAvailability);
+        timeInput.addEventListener('change', checkAvailability);
+        durationRadios.forEach(radio => radio.addEventListener('change', checkAvailability));
+
+        // Style selected duration radio
+        durationRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                durationRadios.forEach(r => r.parentElement.classList.remove('border-green-600', 'bg-green-50'));
+                if (this.checked) {
+                    this.parentElement.classList.add('border-green-600', 'bg-green-50');
+                }
+            });
         });
     });
-});
-{% endif %}
+}
 
 // Copy amount function for Step 3
 function copyAmount() {

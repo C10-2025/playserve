@@ -164,27 +164,27 @@ class FieldForm(forms.ModelForm):
             'name', 'address', 'city', 'latitude', 'longitude',
             'number_of_courts', 'court_surface', 'has_lights', 'has_backboard',
             'opening_time', 'closing_time', 'description', 'court_image',
-            'price_per_hour', 'owner_name', 'owner_contact', 'owner_bank_account',
-            'owner_qris_image'
+            'price_per_hour', 'owner_name', 'owner_contact', 'owner_bank_account'
         ]
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'w-full border rounded px-3 py-2'}),
-            'address': forms.Textarea(attrs={'class': 'w-full border rounded px-3 py-2', 'rows': 2}),
-            'city': forms.Select(attrs={'class': 'w-full border rounded px-3 py-2'}),
-            'latitude': forms.NumberInput(attrs={'class': 'w-full border rounded px-3 py-2', 'step': '0.000001'}),
-            'longitude': forms.NumberInput(attrs={'class': 'w-full border rounded px-3 py-2', 'step': '0.000001'}),
-            'number_of_courts': forms.NumberInput(attrs={'class': 'w-full border rounded px-3 py-2'}),
-            'court_surface': forms.Select(attrs={'class': 'w-full border rounded px-3 py-2'}),
-            'opening_time': forms.TimeInput(attrs={'type': 'time', 'class': 'w-full border rounded px-3 py-2'}),
-            'closing_time': forms.TimeInput(attrs={'type': 'time', 'class': 'w-full border rounded px-3 py-2'}),
-            'description': forms.Textarea(attrs={'class': 'w-full border rounded px-3 py-2', 'rows': 4}),
-            'price_per_hour': forms.NumberInput(attrs={'class': 'w-full border rounded px-3 py-2'}),
-            'owner_name': forms.TextInput(attrs={'class': 'w-full border rounded px-3 py-2'}),
-            'owner_contact': forms.TextInput(attrs={'class': 'w-full border rounded px-3 py-2'}),
-            'owner_bank_account': forms.TextInput(attrs={'class': 'w-full border rounded px-3 py-2'}),
+            'name': forms.TextInput(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
+            'address': forms.Textarea(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500', 'rows': 2}),
+            'city': forms.Select(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
+            'latitude': forms.NumberInput(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500', 'step': '0.000001'}),
+            'longitude': forms.NumberInput(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500', 'step': '0.000001'}),
+            'number_of_courts': forms.NumberInput(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
+            'court_surface': forms.Select(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
+            'opening_time': forms.TimeInput(attrs={'type': 'time', 'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
+            'closing_time': forms.TimeInput(attrs={'type': 'time', 'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
+            'description': forms.Textarea(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500', 'rows': 4}),
+            'price_per_hour': forms.NumberInput(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
+            'owner_name': forms.TextInput(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
+            'owner_contact': forms.TextInput(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
+            'owner_bank_account': forms.TextInput(attrs={'class': 'w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500'}),
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)  # Extract user for validation
         super().__init__(*args, **kwargs)
 
         # Pre-populate amenities checkboxes if editing
@@ -196,6 +196,32 @@ class FieldForm(forms.ModelForm):
             self.fields['amenities_cafe'].initial = 'cafe' in amenities_list
             self.fields['amenities_pro_shop'].initial = 'pro_shop' in amenities_list
             self.fields['amenities_equipment_rental'].initial = 'equipment_rental' in amenities_list
+
+    def clean_name(self):
+        """Validate court name uniqueness for this admin"""
+        name = self.cleaned_data.get('name')
+        if name and self.user:
+            existing = PlayingField.objects.filter(
+                name__iexact=name,
+                created_by=self.user
+            )
+            if self.instance and self.instance.pk:
+                existing = existing.exclude(pk=self.instance.pk)
+            if existing.exists():
+                raise forms.ValidationError("You already have a court with this name. Please choose a different name.")
+        return name
+
+    def clean(self):
+        """Additional form-wide validation"""
+        cleaned_data = super().clean()
+        opening_time = cleaned_data.get('opening_time')
+        closing_time = cleaned_data.get('closing_time')
+
+        # Validate operating hours make sense
+        if opening_time and closing_time and opening_time >= closing_time:
+            raise forms.ValidationError("Closing time must be after opening time.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)

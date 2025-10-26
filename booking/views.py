@@ -65,6 +65,8 @@ class FieldListView(ListView):
         context['cities'] = PlayingField.CITY_CHOICES
         context['search_query'] = self.request.GET.get('search', '')
         context['selected_city'] = self.request.GET.get('city', '')
+        user_profile = self.request.user.profile
+        context['profile'] = user_profile
         return context
 
 
@@ -101,12 +103,13 @@ class FieldDetailView(DetailView):
             })
 
         context['availability_calendar'] = availability_data
+        user_profile = self.request.user.profile
+        context['profile'] = user_profile
         return context
 
 
 class BookingCreateView(LoginRequiredMixin, CreateView):
     """
-    Multi-step booking form
     Step 1: Identity & Contact
     Step 2: Date & Time Selection
     Step 3: Payment & Confirmation
@@ -131,7 +134,7 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
         """Override to remove 'instance' for non-ModelForm steps"""
         kwargs = super().get_form_kwargs()
         step = self.request.GET.get('step', '1')
-        if step in ['1', '2']:  # Regular forms don't accept 'instance'
+        if step in ['1', '2']:  # Regular forms ga accept instance
             kwargs.pop('instance', None)
         return kwargs
 
@@ -139,8 +142,9 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['field'] = self.field
         context['step'] = self.request.GET.get('step', '1')
+        user_profile = self.request.user.profile
+        context['profile'] = user_profile
 
-        # Pre-fill user data in step 1
         if context['step'] == '1':
             context['form'].initial = {
                 'booker_name': self.request.user.get_full_name() or self.request.user.username,
@@ -153,15 +157,12 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
         step = self.request.GET.get('step', '1')
 
         if step == '1':
-            # Save step 1 data to session
             self.request.session['booking_step1'] = form.cleaned_data
             return redirect(f"{self.request.path}?step=2")
 
         elif step == '2':
-            # Save step 2 data to session
             booking_data = form.cleaned_data
 
-            # Check availability via AJAX or here
             temp_booking = Booking(
                 field=self.field,
                 booking_date=booking_data['booking_date'],
@@ -183,8 +184,7 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
             }
             return redirect(f"{self.request.path}?step=3")
 
-        else:  # step 3
-            # Combine all steps and create booking
+        else:  
             step1_data = self.request.session.get('booking_step1', {})
             step2_data = self.request.session.get('booking_step2', {})
 
@@ -192,12 +192,10 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
             booking.user = self.request.user
             booking.field = self.field
 
-            # Add step 1 data
             booking.booker_name = step1_data['booker_name']
             booking.booker_phone = step1_data['booker_phone']
             booking.booker_email = step1_data.get('booker_email', '')
 
-            # Add step 2 data
             from datetime import datetime
             booking.booking_date = datetime.strptime(step2_data['booking_date'], '%Y-%m-%d').date()
             booking.start_time = datetime.strptime(step2_data['start_time'], '%H:%M:%S').time()
@@ -205,16 +203,13 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
             booking.duration_hours = step2_data['duration_hours']
             booking.notes = step2_data.get('notes', '')
 
-            # Calculate total price
             booking.total_price = booking.calculate_price()
 
-            # Skip validation during creation since we already validated in step 2
             booking._skip_validation = True
 
             try:
                 booking.save()
 
-                # Clear session data
                 del self.request.session['booking_step1']
                 del self.request.session['booking_step2']
 
@@ -287,6 +282,8 @@ class BookingListView(LoginRequiredMixin, ListView):
         all_bookings = self.get_queryset()
         today = timezone.now().date()
 
+        user_profile = self.request.user.profile
+        context['profile'] = user_profile
         context['upcoming_bookings'] = all_bookings.filter(
             booking_date__gte=today,
             status__in=['PENDING_PAYMENT', 'CONFIRMED']
@@ -386,6 +383,9 @@ class AdminDashboardView(LoginRequiredMixin, AdminTestMixin, ListView):
         context['pending_bookings'] = all_bookings.filter(
             status='PENDING_PAYMENT'
         ).select_related('field', 'user').order_by('-created_at')[:10]
+
+        user_profile = self.request.user.profile
+        context['profile'] = user_profile
 
         return context
 
@@ -520,6 +520,8 @@ class AdminBookingListView(LoginRequiredMixin, AdminTestMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['my_fields'] = PlayingField.objects.filter(created_by=self.request.user)
         context['status_choices'] = Booking.STATUS_CHOICES
+        user_profile = self.request.user.profile
+        context['profile'] = user_profile
         return context
 
 

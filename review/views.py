@@ -49,7 +49,8 @@ def add_review(request):
 
 def review_list(request):
     fields = PlayingField.objects.all()
-    context = {'fields': fields}
+    user_profile = request.user.profile
+    context = {'fields': fields, 'profile':user_profile}
 
     return render(request, 'review_list.html', context)
 

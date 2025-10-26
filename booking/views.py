@@ -10,8 +10,6 @@ from django.db.models import Q
 from .models import PlayingField, Booking
 from .forms import BookingStepOneForm, BookingStepTwoForm, BookingStepThreeForm, FieldForm
 
-# === USER VIEWS ===
-
 class FieldListView(ListView):
     """Court listing with search and filters"""
     model = PlayingField
@@ -22,7 +20,7 @@ class FieldListView(ListView):
     def get_queryset(self):
         queryset = PlayingField.objects.filter(is_active=True)
 
-        # Search functionality
+        # Search 
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(
@@ -91,7 +89,7 @@ class FieldDetailView(DetailView):
             # Determine availability status
             if len(booked_slots) == 0:
                 status = 'available'
-            elif len(booked_slots) >= 10:  # Arbitrary threshold
+            elif len(booked_slots) >= 10:  
                 status = 'full'
             else:
                 status = 'limited'

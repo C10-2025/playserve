@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2">
+            {% if form.instance.pk %}Edit Court{% else %}Add New Court{% endif %}
+        </h1>
+        <p class="text-white">
+            {% if form.instance.pk %}Update court information{% else %}Create a new tennis court for booking{% endif %}
+        </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Basic Information -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Basic Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Court Name *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                        {{ form.city }}
+                        {% if form.city.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.city.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Address *</label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.address.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Court Details -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Court Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Number of Courts *</label>
+                        {{ form.number_of_courts }}
+                        {% if form.number_of_courts.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.number_of_courts.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Court Surface *</label>
+                        {{ form.court_surface }}
+                        {% if form.court_surface.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.court_surface.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price per Hour *</label>
+                        {{ form.price_per_hour }}
+                        {% if form.price_per_hour.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.price_per_hour.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Opening Time *</label>
+                        {{ form.opening_time }}
+                        {% if form.opening_time.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.opening_time.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Closing Time *</label>
+                        {{ form.closing_time }}
+                        {% if form.closing_time.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.closing_time.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="flex items-center space-x-3">
+                        {{ form.has_lights }}
+                        <label class="text-sm font-medium text-gray-700">Has Lights (Night Play)</label>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        {{ form.has_backboard }}
+                        <label class="text-sm font-medium text-gray-700">Has Backboard (Practice Wall)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Owner Information -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Owner Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Owner Name *</label>
+                        {{ form.owner_name }}
+                        {% if form.owner_name.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.owner_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Owner Contact *</label>
+                        {{ form.owner_contact }}
+                        {% if form.owner_contact.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.owner_contact.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bank Account Details</label>
+                    {{ form.owner_bank_account }}
+                    {% if form.owner_bank_account.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.owner_bank_account.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Media & Description -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Media & Description</h2>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Court Image</label>
+                    {{ form.court_image }}
+                    {% if form.court_image.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.court_image.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">QRIS Payment Code</label>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <img src="{% static 'image/dummy_qris.jpg' %}" alt="Default QRIS Code" class="max-w-xs rounded border">
+                        <p class="text-xs text-gray-500 mt-2">All courts use the same QRIS code for payments</p>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Amenities -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Amenities</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="flex items-center space-x-2">
+                        {{ form.amenities_parking }}
+                        <label class="text-sm text-gray-700">Parking</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {{ form.amenities_locker }}
+                        <label class="text-sm text-gray-700">Locker Room</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {{ form.amenities_shower }}
+                        <label class="text-sm text-gray-700">Shower</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {{ form.amenities_cafe }}
+                        <label class="text-sm text-gray-700">Cafe</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {{ form.amenities_pro_shop }}
+                        <label class="text-sm text-gray-700">Pro Shop</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {{ form.amenities_equipment_rental }}
+                        <label class="text-sm text-gray-700">Equipment Rental</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location (Optional) -->
+            <div>
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Location (Optional)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                        {{ form.latitude }}
+                        {% if form.latitude.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.latitude.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                        {{ form.longitude }}
+                        {% if form.longitude.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.longitude.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-4 pt-6 border-t">
+                <a href="{% url 'booking:admin_court_management' %}"
+                   class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    {% if form.instance.pk %}Update Court{% else %}Create Court{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

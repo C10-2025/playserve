@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<main class="bgcommunity w-full px-4 py-16">
+  <div class="max-w-6xl mx-auto">
+
+    <!-- Title -->
+    <div class="flex flex-col items-center mb-10">
+      <h1 class="text-4xl md:text-5xl font-extrabold uppercase tracking-wider text-white text-center">
+        Court Management
+      </h1>
+
+      {% if is_admin %}
+        <a href="{% url 'booking:admin_add_field' %}"
+           class="mt-4 bg-[#C1D752] text-gray-900 font-bold py-2.5 px-6 rounded-lg shadow-md hover:brightness-90 hover:-translate-y-0.5 transition-all duration-300">
+          + Add New Court
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div class="bg-white text-gray-900 rounded-xl p-6 text-center shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+            <div class="text-3xl font-bold text-blue-600 mb-2">{{ total_courts }}</div>
+            <div class="text-gray-600 font-semibold">Total Courts</div>
+        </div>
+        <div class="bg-white text-gray-900 rounded-xl p-6 text-center shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+            <div class="text-3xl font-bold text-green-600 mb-2">{{ active_courts }}</div>
+            <div class="text-gray-600 font-semibold">Active Courts</div>
+        </div>
+        <div class="bg-white text-gray-900 rounded-xl p-6 text-center shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+            <div class="text-3xl font-bold text-yellow-600 mb-2">{{ pending_verifications }}</div>
+            <div class="text-gray-600 font-semibold">Pending Verifications</div>
+        </div>
+        <div class="bg-white text-gray-900 rounded-xl p-6 text-center shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+            <div class="text-3xl font-bold text-purple-600 mb-2">Rp {{ total_revenue|floatformat:0 }}</div>
+            <div class="text-gray-600 font-semibold">Total Revenue</div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-wrap justify-center gap-4 mb-10">
+        <!-- Manage Bookings button removed -->
+    </div>
+
+    <!-- Recent Bookings -->
+    {% if recent_bookings %}
+    <div class="mb-10">
+        <h2 class="text-2xl font-bold text-white text-center mb-6">Recent Bookings</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for booking in recent_bookings %}
+            <div class="bg-white text-gray-900 rounded-xl p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-bold">{{ booking.field.name }}</h3>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if booking.status == 'CONFIRMED' %}bg-green-100 text-green-800
+                        {% elif booking.status == 'PENDING_PAYMENT' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">{{ booking.booker_name }}</p>
+                <p class="text-sm text-gray-600 mb-3">{{ booking.booking_date|date:"M j, Y" }} • {{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</p>
+                <div class="flex justify-between items-center">
+                    <div class="text-lg font-bold text-green-600">Rp {{ booking.total_price|floatformat:0 }}</div>
+                    {% if booking.status == 'PENDING_PAYMENT' %}
+                    <a href="{% url 'booking:admin_verify_payment' booking.id %}"
+                       class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition">
+                       Verify
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Courts List -->
+    {% if courts %}
+    <div>
+        <h2 class="text-2xl font-bold text-white text-center mb-6">My Courts</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for court in courts %}
+            <div class="bg-white text-gray-900 rounded-xl p-6 flex flex-col justify-between shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xl font-extrabold">{{ court.name }}</h3>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            {% if court.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {% if court.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                    <p class="text-base text-gray-600 mb-2">{{ court.city }}, {{ court.address|truncatechars:50 }}</p>
+                    <p class="text-sm text-gray-700 mb-2">{{ court.number_of_courts }} court{{ court.number_of_courts|pluralize }} • Rp {{ court.price_per_hour|floatformat:0 }}/hour</p>
+                    {% if court.has_lights %}
+                    <p class="text-sm text-blue-600 mb-3">💡 Night play available</p>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col gap-2 mt-4">
+                    <a href="{% url 'booking:field_detail' court.pk %}"
+                       class="w-full text-center py-2 px-4 rounded-lg text-gray-900 font-semibold transition-all duration-300"
+                       style="background-color: var(--lime-green); box-shadow: 0 4px 10px rgba(193, 215, 82, 0.4);">
+                        VIEW COURT
+                    </a>
+                    <div class="flex gap-2">
+                        <a href="{% url 'booking:admin_edit_field' court.pk %}"
+                           class="flex-1 text-center py-2 px-4 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition-all duration-300 text-sm">
+                            EDIT
+                        </a>
+                        {% if court.is_active %}
+                        <a href="{% url 'booking:admin_delete_field' court.pk %}"
+                           class="flex-1 text-center py-2 px-4 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-all duration-300 text-sm">
+                            DELETE
+                        </a>
+                        {% else %}
+                        <span class="flex-1 text-center py-2 px-4 rounded-lg bg-gray-400 text-white font-semibold text-sm opacity-50 cursor-not-allowed">
+                            DELETED
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg mx-auto p-8 md:p-12 text-center text-gray-900">
+        <h3 class="text-2xl font-bold mb-4">You haven't added any courts yet</h3>
+        <p class="text-gray-600 mb-8">Start by adding your first tennis court to begin accepting bookings.</p>
+        {% if is_admin %}
+        <button onclick="openCreateModal()" class="inline-block bg-[#C1D752] text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg hover:brightness-90 transition-all duration-300">
+            + Add Your First Court
+        </button>
+        {% else %}
+        <p class="text-gray-600">Only admins can add courts.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-10 flex justify-center">
+        <nav class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page=1" class="px-4 py-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-all duration-300">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-all duration-300">Previous</a>
+            {% endif %}
+
+            <span class="px-4 py-2 bg-[#C1D752] text-gray-900 rounded-lg font-semibold">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-all duration-300">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-all duration-300">Last</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+
+    <!-- Create Court Modal -->
+    <div id="createModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full">
+        <h3 class="text-2xl font-bold text-gray-900 mb-6">Quick Add Court</h3>
+        <form id="create-court-form" method="POST" action="{% url 'booking:admin_add_field' %}" enctype="multipart/form-data" class="space-y-4">
+          {% csrf_token %}
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Court Name *</label>
+            <input type="text" name="name" placeholder="e.g., TC7 Tennis Court"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all"
+                   required>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Full Address *</label>
+            <textarea name="address" rows="2" placeholder="Street address, district, city"
+                      class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all"
+                      required></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">City *</label>
+            <select name="city" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all" required>
+              <option value="">Select City</option>
+              <option value="Jakarta">Jakarta</option>
+              <option value="Bogor">Bogor</option>
+              <option value="Depok">Depok</option>
+              <option value="Tangerang">Tangerang</option>
+              <option value="Bekasi">Bekasi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Price per Hour *</label>
+            <input type="number" name="price_per_hour" placeholder="90000"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all"
+                   required>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Owner Name *</label>
+            <input type="text" name="owner_name" placeholder="Court owner name"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all"
+                   required>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Owner Contact *</label>
+            <input type="text" name="owner_contact" placeholder="+62 812-3456-7890"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all"
+                   required>
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-all">Cancel</button>
+            <button type="submit" class="px-5 py-2 bg-[#C1D752] text-gray-900 font-semibold rounded-lg shadow-md hover:brightness-90 transition-all">Add Court</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  function openCreateModal() {
+    document.getElementById('createModal').classList.remove('hidden');
+  }
+  function closeCreateModal() {
+    document.getElementById('createModal').classList.add('hidden');
+  }
+
+  // CSRF helper
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // Toast
+  function toastCompat(title, message, type) {
+    if (window.showToast) return window.showToast(title, message, type);
+    const el = document.createElement('div');
+    el.textContent = title ? `${title}: ${message}` : (message || title || '');
+    el.style.position = 'fixed';
+    el.style.right = '16px';
+    el.style.bottom = '16px';
+    el.style.zIndex = '9999';
+    el.style.padding = '10px 14px';
+    el.style.borderRadius = '10px';
+    el.style.fontWeight = '600';
+    el.style.boxShadow = '0 8px 24px rgba(0,0,0,.2)';
+    el.style.background = (type === 'error') ? '#e53e3e' : '#C1D752';
+    el.style.color = (type === 'error') ? '#fff' : '#082459';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+
+  // AJAX create court
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('create-court-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.disabled = true; submitBtn.textContent = 'Adding...';
+
+      try {
+        const formData = new FormData(form);
+        const resp = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+          body: formData
+        });
+
+        if (resp.redirected) {
+          window.location.href = resp.url;
+          return;
+        }
+
+        const data = await resp.json().catch(() => ({}));
+        console.log('Response:', resp.status, data); // Debug logging
+
+        if (!resp.ok) {
+          // Handle form validation errors
+          if (data.errors) {
+            const errorMessages = [];
+            for (const field in data.errors) {
+              if (Array.isArray(data.errors[field])) {
+                errorMessages.push(...data.errors[field]);
+              } else {
+                errorMessages.push(data.errors[field]);
+              }
+            }
+            toastCompat('Validation Error', errorMessages.join(' '), 'error');
+          } else {
+            const isDuplicate =
+              (data && (data.code === 'duplicate_name')) ||
+              (resp.status === 409) ||
+              (/already\s+exists/i.test(data.message || ''));
+
+            if (isDuplicate) {
+              toastCompat('Duplicate Name', 'Court name already exists. Please use a different name.', 'error');
+            } else {
+              const errorMsg = data.message || data.error || 'Failed to add court.';
+              console.error('Form submission error:', errorMsg, data);
+              toastCompat('Error', errorMsg, 'error');
+            }
+          }
+          return;
+        }
+
+        // Success
+        toastCompat('Success', data.message || 'Court added successfully.', 'success');
+        form.reset();
+        closeCreateModal();
+
+        const target = data.redirect_url || window.location.href;
+        setTimeout(() => { window.location.href = target; }, 1200);
+
+      } catch (err) {
+        toastCompat('Error', 'Unexpected error occurred.', 'error');
+      } finally {
+        submitBtn.disabled = false; submitBtn.textContent = originalBtnText;
+      }
+    });
+  });
+</script>
+
+{% endblock %}

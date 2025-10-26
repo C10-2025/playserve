@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'profil',
     'main',
+    'booking',
+    "django.contrib.humanize",
     'review',
     'matchmaking',
     'community',
@@ -133,6 +135,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
+# LANGUAGE_CODE = "id"
+USE_L10N = True
+
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = "."
+NUMBER_GROUPING = 3
+
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
@@ -150,6 +159,10 @@ if DEBUG:
     ]
 else:
     STATIC_ROOT = BASE_DIR / 'static'
+
+# Media files configuration
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Default primary key field type

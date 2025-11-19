@@ -259,7 +259,7 @@ body {
                     {% for i in "12345" %}
                       {% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}
                     {% endfor %}
-                    — {{ c.komentar|truncatechars:60 }}
+                    — <strong>{{ c.user.username }}</strong>: {{ c.komentar|truncatechars:60 }}
                   </li>
                 {% endfor %}
               </ul>

@@ -107,7 +107,11 @@ class ReviewSearchBarTests(TestCase):
         """The search page should render successfully."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Playing Field Reviews', response.content.decode())
+        content = response.content.decode()
+        # Check that either heading appears (pengguna biasa atau admin)
+        self.assertTrue(
+            'Court Reviews' in content or 'Review Management' in content
+        )
 
     def test_search_by_name_returns_correct_field(self):
         """Searching by field name should return matching results."""

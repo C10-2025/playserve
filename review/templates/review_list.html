@@ -12,11 +12,16 @@ body {
   overflow: hidden;
 }
 
-/* --- Review Section Container --- */
-.review-section {
-  color: #f5f5f5;
+/* Container full width */
+.review-container {
   max-width: 1100px;
   margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Review section */
+.review-section {
+  color: #f5f5f5;
   background: #1a2b4c;
   border-radius: 20px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
@@ -26,7 +31,7 @@ body {
   height: 80vh;
 }
 
-/* --- Header --- */
+/* Header */
 .review-header {
   flex-shrink: 0;
   position: sticky;
@@ -57,7 +62,22 @@ body {
   border-radius: 2px;
 }
 
-/* --- Search Bar --- */
+/* Sorting + search */
+.left-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.sort-select {
+  background: #fff;
+  color: #1a2b4c;
+  border: 1px solid #b0d235;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 600;
+}
+
 .search-form {
   display: flex;
   align-items: center;
@@ -82,35 +102,9 @@ body {
   padding: 8px 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.25s ease, transform 0.1s ease;
 }
 
-.search-btn:hover {
-  background-color: #a2c52e;
-  transform: translateY(-1px);
-}
-
-/* --- Scrollable Card Container --- */
-.review-content {
-  overflow-y: auto;
-  flex: 1;
-  padding-right: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: #b0d235 #24375b;
-}
-
-.review-content::-webkit-scrollbar {
-  width: 10px;
-}
-.review-content::-webkit-scrollbar-thumb {
-  background-color: #b0d235;
-  border-radius: 10px;
-}
-.review-content::-webkit-scrollbar-track {
-  background-color: #24375b;
-}
-
-/* --- Buttons --- */
+/* === button css === */
 .add-review-btn {
   background: #b0d235;
   color: #1a2b4c;
@@ -122,12 +116,19 @@ body {
   cursor: pointer;
   transition: background 0.25s ease, transform 0.1s ease;
 }
+
 .add-review-btn:hover {
   background: #a2c52e;
   transform: translateY(-1px);
 }
 
-/* --- Review Cards --- */
+/* Review list scroll */
+.review-content {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 8px;
+}
+
 .review-card {
   background: #ffffff;
   border-radius: 14px;
@@ -135,36 +136,9 @@ body {
   padding: 28px 30px;
   margin-bottom: 28px;
   color: #1a2b4c;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.review-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
-.review-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 10px;
-}
-
-.review-title {
-  font-weight: 700;
-  font-size: 1.2rem;
-}
-
-.review-info {
-  font-size: 0.95rem;
-  color: #445;
-  max-width: 650px;
-  line-height: 1.5;
-  word-break: break-word;
-}
-
-/* --- Comment Preview --- */
+/* Preview area */
 .review-komentar {
   font-size: 0.97rem;
   color: #333;
@@ -174,104 +148,183 @@ body {
   line-height: 1.6;
 }
 
-/* --- Empty State --- */
-.no-reviews {
-  text-align: center;
-  color: #ccc;
-  font-style: italic;
-  margin-top: 20px;
+/* === Floating Admin Analytics Box === */
+.admin-floating-box {
+  position: fixed;
+  right: 25px;
+  top: 120px;
+  width: 230px;
+  background: #1a2b4c;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  z-index: 999;
+  border: 2px solid #1a2b4c;
 }
 
-/* --- Responsive --- */
-@media (max-width: 768px) {
-  .review-section {
-    padding: 28px 22px;
-    max-width: 95%;
-    height: 75vh;
-  }
-  .review-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .review-header h2 {
-    font-size: 1.4rem;
-  }
-  .review-card {
-    padding: 20px;
+.admin-floating-box h3 {
+  margin-top: 0;
+  margin-bottom: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f5f5f5; 
+  text-transform: uppercase;
+}
+
+/* Stat items */
+.stat-item {
+  background: #f7f7f7;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid #e6e6e6;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a2b4c;
+}
+
+/* Responsive fallback */
+@media (max-width: 1100px) {
+  .admin-floating-box {
+    position: static;
+    width: 100%;
+    margin-top: 20px;
   }
 }
 </style>
 
-<div class="review-section">
-  <div class="review-header">
-    <div>
-      <h2>
-        {% if request.user.is_staff or request.user.is_superuser %}
-          Review Management
-        {% else %}
-          Court Reviews
-        {% endif %}
-      </h2>
-      <div class="header-divider"></div>
+
+
+
+<div class="review-container">
+  <!-- Left: Review list -->
+  <div class="review-section">
+    <div class="review-header">
+      <div>
+        <h2 style="margin:0;">
+          {% if request.user.is_staff or request.user.is_superuser %}
+            Review Management
+          {% else %}
+            Court Reviews
+          {% endif %}
+        </h2>
+        <div style="height:3px;width:120px;background:#b0d235;border-radius:2px;margin-top:6px;"></div>
+      </div>
+
+      <div class="left-controls">
+        <!-- Sort select (left of search) -->
+        <form id="sort-form" method="get" style="display:inline;">
+          {# Keep search value when sorting #}
+          <input type="hidden" name="search" value="{{ request.GET.search }}">
+          <select name="sort" class="sort-select" onchange="document.getElementById('sort-form').submit()">
+            <option value="none" {% if sort == 'none' %}selected{% endif %}>Rating: Default</option>
+            <option value="avg_desc" {% if sort == 'avg_desc' %}selected{% endif %}>Rating: High → Low</option>
+            <option value="avg_asc" {% if sort == 'avg_asc' %}selected{% endif %}>Rating: Low → High</option>
+          </select>
+        </form>
+
+        <!-- Search bar -->
+        <form method="get" action="{% url 'review:review_list_search_bar' %}" class="search-form" style="margin-left:8px;">
+          <input type="text" name="search" placeholder="Search by name or city..." value="{{ request.GET.search }}" class="search-input" />
+          <button type="submit" class="search-btn">🔍</button>
+        </form>
+      </div>
     </div>
 
-    <!-- Search Bar -->
-    <form method="get" action="{% url 'review:review_list_search_bar' %}" class="search-form">
-      <input
-        type="text"
-        name="search"
-        placeholder="Search by name or city..."
-        value="{{ request.GET.search }}"
-        class="search-input"
-      />
-      <button type="submit" class="search-btn">🔍</button>
-    </form>
-  </div>
+    <div id="add-review-container"></div>
 
-  <div id="add-review-container"></div>
+    <div class="review-content">
+      {% for field in fields %}
+        <div class="review-card">
+          <div style="display:flex; gap:16px; align-items:center; justify-content:space-between;">
+            <div style="display:flex; gap:16px; align-items:center; flex:1;">
+              {% if field.image_url %}
+                <img src="{{ field.image_url }}" alt="thumb" style="width:80px;height:80px;border-radius:10px;object-fit:cover;">
+              {% endif %}
+              <div style="flex:1;">
+                <div style="font-weight:700; font-size:1.1rem;">{{ field.name }}</div>
+                <div style="color:#445; margin-top:6px;">
+                  {{ field.address }} • Rp {{ field.price_per_hour }}
+                </div>
+                <div style="margin-top:6px; color:#333;">
+                  Avg rating: <strong>{{ field.avg_rating|floatformat:1 }}</strong> • Reviews: <strong>{{ field.review_count }}</strong>
+                </div>
+              </div>
+            </div>
 
-  <div class="review-content">
-    {% for field in fields %}
-      <div class="review-card">
-        <div class="review-card-header">
-          <div style="display:flex; gap:16px; align-items:center; flex:1;">
-            {% if field.image_url %}
-              <img src="{{ field.image_url }}" alt="thumb" style="width:80px;height:80px;border-radius:10px;object-fit:cover;">
-            {% endif %}
-            <div style="flex:1;">
-              <div class="review-title">{{ field.name }}</div>
-              <div class="review-info">{{ field.address }} • Rp {{ field.price_per_hour }}</div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="add-review-btn" style="margin-right:8px" onclick="toggleReviewForm('{{ field.id }}')">Add Review</button>
+              <button class="add-review-btn" style="background:#fff;color:#1a2b4c;border:1px solid #d6e8c5" onclick="viewComments('{{ field.id }}')">View Comments</button>
             </div>
           </div>
-          <div>
-            <button class="add-review-btn" style="margin-right:8px" onclick="toggleReviewForm('{{ field.id }}')">Add Review</button>
-            <button class="add-review-btn" style="background:#fff;color:#1a2b4c;border:1px solid #d6e8c5" onclick="viewComments('{{ field.id }}')">View Comments</button>
+
+          <div class="review-komentar" style="margin-top:12px;">
+            Latest reviews preview:
+            {% with comments=field.review_set.all|slice:":2" %}
+              {% if comments %}
+                <ul style="margin:8px 0; padding-left:18px">
+                  {% for c in comments %}
+                    <li style="margin-bottom:6px">
+                      {% for i in "12345" %}
+                        {% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}
+                      {% endfor %}
+                      — <strong>{{ c.user.username }}</strong>: {{ c.komentar|truncatechars:60 }}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <div style="color:#777; margin-top:8px">No reviews yet.</div>
+              {% endif %}
+            {% endwith %}
           </div>
         </div>
+      {% empty %}
+        <p class="no-reviews">No courts found.</p>
+      {% endfor %}
+    </div>
+  </div>
 
-        <div class="review-komentar">
-          Latest reviews preview:
-          {% with comments=field.review_set.all|slice:":2" %}
-            {% if comments %}
-              <ul style="margin:8px 0; padding-left:18px">
-                {% for c in comments %}
-                  <li style="margin-bottom:6px">
-                    {% for i in "12345" %}
-                      {% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}
-                    {% endfor %}
-                    — <strong>{{ c.user.username }}</strong>: {{ c.komentar|truncatechars:60 }}
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <div style="color:#777; margin-top:8px">No reviews yet.</div>
-            {% endif %}
-          {% endwith %}
+  <!-- Right: Admin analytics sidebar -->
+  <div class="admin-sidebar">
+    {% if request.user.is_authenticated and request.user.is_staff or request.user.is_authenticated and request.user.is_superuser %}
+    <div class="admin-floating-box">
+      <h3>Admin Analytics</h3>
+
+      <div class="stat-item">
+        <div class="stat-label">Total reviews</div>
+        <div class="stat-value">{{ analytics.total_reviews }}</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Mean rating</div>
+        <div class="stat-value">
+          {% if analytics.mean %}{{ analytics.mean|floatformat:2 }}{% else %}N/A{% endif %}
         </div>
       </div>
-    {% empty %}
-      <p class="no-reviews">No courts found.</p>
-    {% endfor %}
+
+      <div class="stat-item">
+        <div class="stat-label">Median rating</div>
+        <div class="stat-value">
+          {% if analytics.median %}{{ analytics.median|floatformat:2 }}{% else %}N/A{% endif %}
+        </div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Mode rating</div>
+        <div class="stat-value">
+          {% if analytics.mode %}{{ analytics.mode|floatformat:2 }}{% else %}N/A{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 

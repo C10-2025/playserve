@@ -4,8 +4,6 @@ from django.contrib.auth.models import User
 from review.models import Review
 from booking.models import PlayingField
 from statistics import mean, median, mode, StatisticsError
-
-
 # TODO: fix testing errors (note that the modules work properly)
 class ReviewViewTests(TestCase):
     def setUp(self):
@@ -63,7 +61,6 @@ class DeleteReviewTests(TestCase):
         )
         self.delete_url = reverse('review:delete-review', args=[self.review.id])
 
-    # ERROR
     def test_admin_can_delete_review(self):
         self.client.login(username='admin', password='pass1234')
         response = self.client.post(self.delete_url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -71,14 +68,12 @@ class DeleteReviewTests(TestCase):
         self.assertEqual(json_data['status'], 'success')
         self.assertFalse(Review.objects.filter(id=self.review.id).exists())
 
-    #ERROR
     def test_non_admin_cannot_delete_review(self):
         self.client.login(username='user', password='pass1234')
         response = self.client.post(self.delete_url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertIn("/login", response.url) #redirected
         self.assertTrue(Review.objects.filter(id=self.review.id).exists())
 
-    #ERROR
     def test_unauthenticated_user_cannot_delete_review(self):
         response = self.client.post(self.delete_url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertIn("/login", response.url) #redirected
@@ -161,7 +156,6 @@ class ReviewFeatureExtensionTests(TestCase):
     # ---------------------
     # Review overwrite test
     # ---------------------
-    #ERROR
     def test_review_is_updated_if_user_reviews_again(self):
         self.client.login(username="regular", password="pass")
 
@@ -231,13 +225,11 @@ class ReviewFeatureExtensionTests(TestCase):
         response = self.client.get(reverse("review:review_list"))
         self.assertIn("analytics", response.context)
 
-    #ERROR
     def test_normal_user_cannot_see_analytics(self):
         self.client.login(username="regular", password="pass")
         response = self.client.get(reverse("review:review_list"))
         self.assertEqual(response.context["analytics"], {}) # Empty analytics
 
-    # ERROR
     def test_analytics_calculations_are_correct(self):
         Review.objects.create(user=self.admin, field=self.field1, rating=5)
         Review.objects.create(user=self.user, field=self.field2, rating=3)

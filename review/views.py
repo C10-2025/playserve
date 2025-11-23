@@ -1,4 +1,3 @@
-# /mnt/data/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from review.forms import ReviewForm
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -13,11 +12,39 @@ from booking.models import PlayingField
 import statistics
 
 def add_review(request):
-    # POST: create a review (AJAX expected)
     if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'status': 'error',
+                'toast_type': 'error',
+                'message': 'You must be logged in to submit a review.'
+            }, status=403)
+
         form = ReviewForm(request.POST)
+
         if form.is_valid():
-            review = form.save()
+            field = form.cleaned_data['field']
+
+            # Check if user already reviewed this field
+            existing = Review.objects.filter(user=request.user, field=field).first()
+
+            if existing:
+                # Update existing review
+                existing.rating = form.cleaned_data['rating']
+                existing.komentar = form.cleaned_data['komentar']
+                existing.save()
+
+                return JsonResponse({
+                    'status': 'success',
+                    'toast_type': 'success',
+                    'message': 'Review updated successfully.'
+                })
+
+            # Create new review
+            review = form.save(commit=False)
+            review.user = request.user
+            review.save()
+
             return JsonResponse({
                 'status': 'success',
                 'toast_type': 'success',
@@ -31,24 +58,20 @@ def add_review(request):
             'message': 'Failed to add review.'
         }, status=400)
 
-    # GET: render AJAX form. Expect optional field id as ?field=ID
+    # GET request (modal form rendering)
     field = None
     field_id = request.GET.get('field')
     if field_id:
         field = get_object_or_404(PlayingField, pk=field_id)
 
     form = ReviewForm()
-    context = {
-        'form': form,
-        'field': field
-    }
+    context = {'form': form, 'field': field}
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         html = render_to_string('add_review.html', context, request=request)
         return HttpResponse(html)
 
     return redirect('review:review_list')
-
 
 def review_list(request):
     """

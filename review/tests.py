@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from review.models import Review
 from booking.models import PlayingField
 from statistics import mean, median, mode, StatisticsError
-# TODO: fix testing errors (note that the modules work properly)
+
 class ReviewViewTests(TestCase):
     def setUp(self):
         self.client = Client()

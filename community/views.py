@@ -7,6 +7,7 @@ from profil.models import Profile
 from django.db.models import Q
 from django.urls import reverse 
 from profil.models import Profile
+from django.views.decorators.http import require_GET
 
 def main_view(request):
     context = {}
@@ -44,6 +45,41 @@ def discover_communities(request):
         except Profile.DoesNotExist:
             context['profile'] = None
     return render(request, 'discover_communities.html', context)
+
+from django.views.decorators.http import require_GET
+from django.http import JsonResponse
+# import lain tetap
+
+@require_GET
+def discover_communities_json(request):
+    query = request.GET.get('q', '')
+
+    if query:
+        communities = Community.objects.filter(name__icontains=query)
+    else:
+        communities = Community.objects.all()
+
+    # Jika user login → bisa menunjukkan mana saja yang sudah join
+    if request.user.is_authenticated:
+        joined_ids = set(
+            request.user.joined_communities.values_list('id', flat=True)
+        )
+    else:
+        # Jika user belum login → tidak ada komunitas yang "joined"
+        joined_ids = set()
+
+    data = []
+    for c in communities:
+        data.append({
+            "id": c.id,
+            "name": c.name,
+            "description": c.description or "",
+            "members_count": c.members.count(),
+            "is_joined": c.id in joined_ids,
+        })
+
+    return JsonResponse(data, safe=False, status=200)
+
 
 @login_required
 def my_communities(request):
@@ -87,6 +123,8 @@ def join_community(request, community_id):
         'community_name': community.name,
         'members_count': community.members.count(),
     })
+
+
 
 @login_required
 @user_passes_test(is_admin)

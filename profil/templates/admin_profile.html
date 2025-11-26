@@ -1,11 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}User Management{% endblock %}
+
 {% block content %}
 {% include 'navbar.html' %}
 
 <main class="w-full">
-  <section class="bgcommunity">
+  <section class="bgcommunity bgcommunity-discover">
     <div class="max-w-6xl mx-auto text-center px-4 flex flex-col items-center">
       <h1 class="font-extrabold uppercase tracking-wider text-white">
         User Management
@@ -26,7 +28,7 @@
             name="q"
             id="search-user"
             class="w-full border-none bg-transparent text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0"
-            placeholder="Search username or Instagram…"
+            placeholder="Search username…"
             value="{{ search_query|default:'' }}">
           <button type="submit" class="text-gray-400 hover:text-blue-600">
             <img src="{% static 'image/search.svg' %}" alt="Search" class="w-5 h-5" />

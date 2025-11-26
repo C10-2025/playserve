@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<style>
+body {
+  background: url('/static/image/background.svg') no-repeat center center fixed;
+  background-size: cover;
+  font-family: "Poppins", sans-serif;
+}
+</style>
+
+<div class="container mx-auto px-4 py-8" style="background: #1a2b4c; border-radius: 20px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4); padding: 42px 48px; color: #f5f5f5; margin: 40px auto; max-width: 1100px;">
+    <!-- Back Button -->
+    <a href="{% url 'booking:field_list' %}" class="text-white hover:underline mb-4 inline-block">
+        ← Back to Courts
+    </a>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <!-- Court Image -->
+            <div class="h-96 bg-gradient-to-br from-green-400 to-green-600 rounded-lg mb-6 overflow-hidden">
+                {% if field.image_url %}
+                <img src="{{ field.image_url }}" alt="{{ field.name }}" class="w-full h-full object-cover" />
+                {% elif field.court_image %}
+                <img src="{{ field.court_image.url }}" alt="{{ field.name }}" class="w-full h-full object-cover" />
+                {% else %}
+                <div class="flex items-center justify-center h-full">
+                    <span class="text-white text-9xl">🎾</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Court Name and Location -->
+            <h1 class="text-4xl font-bold text-white mb-2">{{ field.name }}</h1>
+            <div class="text-sm text-white mb-4 flex items-center flex-wrap gap-2">
+                <span>📍</span>
+                <span>{{ field.address }}, {{ field.city }}</span>
+
+                {% if field.latitude and field.longitude %}
+                    <span class="opacity-50">•</span>
+                    <a
+                    href="https://www.google.com/maps?q={{ field.latitude }},{{ field.longitude }}"
+                    target="_blank"
+                    class="text-green-600 hover:underline"
+                    >
+                    View on Google Maps
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Court Details -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <!-- <h2 class="text-2xl font-bold  text-gray-600 mb-4">Court Details</h2> -->
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-600 text-sm">Number of Courts</p>
+                        <p class="font-semibold text-gray-600">{{ field.number_of_courts }} court{{ field.number_of_courts|pluralize }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm">Court Surface</p>
+                        <p class="font-semibold text-gray-600">{{ field.get_court_surface_display }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm">Night Play (Lights)</p>
+                        <p class="font-semibold text-gray-600">{% if field.has_lights %}✅ Available{% else %}❌ Not Available{% endif %}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm">Practice Wall</p>
+                        <p class="font-semibold text-gray-600">{% if field.has_backboard %}✅ Available{% else %}❌ Not Available{% endif %}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm">Operating Hours</p>
+                        <p class="font-semibold text-gray-600">{{ field.opening_time|time:"H:i" }} - {{ field.closing_time|time:"H:i" }}</p>
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                {% if field.amenities %}
+                <div class="mt-6">
+                    <h3 class="font-bold mb-2">Amenities</h3>
+                    <div class="flex flex-wrap gap-2">
+                        {% for amenity in field.amenities %}
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                            ✓ {{ amenity|title }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Description -->
+                {% if field.description %}
+                <div class="mt-6">
+                    <h3 class="font-bold mb-2">About This Court</h3>
+                    <p class="text-gray-600">{{ field.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Availability Preview -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-2xl font-bold mb-4  text-gray-600">Availability (Next 14 Days)</h2>
+
+                <div class="grid grid-cols-7 gap-2">
+                    {% for day in availability_calendar %}
+                    <div class="text-center">
+                        <p class="text-xs text-gray-600 mb-1">{{ day.date|date:"D" }}</p>
+                        <p class="text-sm text-gray-600 font-semibold mb-2">{{ day.date|date:"d" }}</p>
+
+                        {% if day.status == 'available' %}
+                        <div class="w-10 h-10 mx-auto bg-green-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs">✓</span>
+                        </div>
+                        <p class="text-xs text-green-600 mt-1">Open</p>
+                        {% elif day.status == 'limited' %}
+                        <div class="w-10 h-10 mx-auto bg-yellow-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs">~</span>
+                        </div>
+                        <p class="text-xs text-yellow-600 mt-1">Limited</p>
+                        {% else %}
+                        <div class="w-10 h-10 mx-auto bg-red-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs">✗</span>
+                        </div>
+                        <p class="text-xs text-red-600 mt-1">Full</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <!-- Sidebar - Booking Card -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
+                <div class="text-center mb-6">
+                    <p class="text-4xl font-bold text-green-600 inline-flex items-baseline gap-2">
+                        Rp {{ field.price_per_hour|floatformat:0|intcomma }}
+                        <span class="text-base font-normal text-gray-600">per hour</span>
+                    </p>
+                </div>
+
+                {% if user.is_authenticated %}
+                <a href="{% url 'booking:create_booking' field.pk %}"
+                   class="block w-full bg-green-600 text-white text-center py-3 rounded-lg hover:bg-green-700 transition text-lg font-semibold">
+                    BOOK NOW
+                </a>
+                {% else %}
+                <a href="{% url 'profil:login' %}?next={{ request.path }}"
+                   class="block w-full bg-green-600 text-white text-center py-3 rounded-lg hover:bg-green-700 transition text-lg font-semibold">
+                    LOGIN TO BOOK
+                </a>
+                {% endif %}
+
+                <!-- <div class="mt-6 space-y-2 text-sm text-gray-600">
+                    <p class="flex items-start text-gray-900">
+                        <span class="mr-2">✓</span>
+                        Instant booking confirmation
+                    </p>
+                    <p class="flex items-start text-gray-900">
+                        <span class="mr-2">✓</span>
+                        Easy QRIS payment
+                    </p>
+                    <p class="flex items-start text-gray-900">
+                        <span class="mr-2">✓</span>
+                        Free cancellation (24h notice)
+                    </p>
+                </div> -->
+
+                <!-- Contact Info -->
+                {% if field.owner_contact %}
+                <div class="mt-6 pt-6 border-t">
+                    <p class="text-sm text-gray-600 mb-2">Questions? Contact the court:</p>
+                    <a href="https://wa.me/{{ field.owner_contact }}"
+                       target="_blank"
+                       class="text-green-600 hover:underline text-sm flex items-center">
+                        <span class="mr-2">📱</span>
+                        WhatsApp {{ field.owner_contact }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

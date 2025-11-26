@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<style>
+body {
+  background: url('/static/image/background.svg') no-repeat center center fixed;
+  background-size: cover;
+  font-family: "Poppins", sans-serif;
+}
+</style>
+
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <div class="text-center mb-6">
+            <div class="text-6xl text-red-500 mb-4">⚠️</div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Deactivate Court</h1>
+            <p class="text-gray-600">Are you sure you want to deactivate this court?</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <h3 class="font-semibold text-gray-600 text-lg mb-2">{{ object.name }}</h3>
+            <p class="text-gray-600 text-sm mb-2">{{ object.city }}, {{ object.address }}</p>
+            <p class="text-gray-600 text-sm">Rp {{ object.price_per_hour|floatformat:0 }}/hour</p>
+        </div>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <div class="text-yellow-600 mr-3">⚠️</div>
+                <div>
+                    <h4 class="font-semibold text-yellow-800">What happens when you deactivate?</h4>
+                    <ul class="text-sm text-yellow-700 mt-1 space-y-1">
+                        <li>• Court will no longer appear in public listings</li>
+                        <li>• Existing bookings will remain active</li>
+                        <li>• You can reactivate the court anytime</li>
+                        <li>• No data will be permanently deleted</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="flex justify-end space-x-4">
+            {% csrf_token %}
+            <a href="{% url 'booking:admin_court_management' %}"
+               class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                Cancel
+            </a>
+            <button type="submit"
+                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold">
+                Deactivate Court
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

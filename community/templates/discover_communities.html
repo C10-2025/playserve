@@ -1,18 +1,32 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Community{% endblock %}
+
 {% block content %}
 {% include 'navbar.html' %}
 
 <main class="w-full">
 
   <!-- Hero -->
-  <section class="bgcommunity">
+<section class="bgcommunity bgcommunity-discover">
+
     <div class="max-w-6xl mx-auto text-center px-4 flex flex-col items-center">
       <h1 class="font-extrabold uppercase tracking-wider text-white">
         Find Your Community
       </h1>
-      <a href="{% url 'my_communities' %}" class="btn btn-hero">SEE MY COMMUNITIES</a>
+      
+      <div class="flex gap-4 mt-4 flex-wrap justify-center">
+        <a href="{% url 'my_communities' %}" class="btn btn-hero">SEE MY COMMUNITIES</a>
+        
+        {% if request.user.is_superuser or request.user.is_staff %}
+          <button onclick="openCreateModal()" 
+                  class="btn btn-hero" 
+                  style="background-color: var(--lime-green); color: #082459;">
+            + CREATE COMMUNITY
+          </button>
+        {% endif %}
+      </div>
     </div>
   </section>
 
@@ -142,6 +156,34 @@
   </div>
 </div>
 
+<!-- Create Community Modal -->
+<div id="createModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+     data-gramm="false" data-gramm_editor="false">
+  <div class="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full">
+    <h3 class="text-2xl font-bold text-gray-900 mb-6">Create New Community</h3>
+    <form id="create-community-form" method="POST" action="{% url 'create_community' %}" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Name</label>
+        <input type="text" name="name" placeholder="Enter community name"
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all"
+               data-gramm="false" data-gramm_editor="false" spellcheck="false" autocorrect="off" autocapitalize="off"
+               required>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+        <textarea name="description" rows="4" placeholder="Describe the community..."
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-[#C1D752] focus:ring-[#C1D752] transition-all"
+                  data-gramm="false" data-gramm_editor="false" spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-all">Cancel</button>
+        <button type="submit" class="px-5 py-2 bg-[#C1D752] text-gray-900 font-semibold rounded-lg shadow-md hover:brightness-90 transition-all">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   // --- CSRF helper (ambil dari cookie)
   function getCookie(name) {
@@ -197,7 +239,7 @@
             }
 
             toast(data.status === 'joined'
-              ? `You’ve joined ${data.community_name}!`
+              ? `You've joined ${data.community_name}!`
               : `Already a member of ${data.community_name}.`);
           } else {
             throw new Error('Failed to join');
@@ -245,6 +287,88 @@
     modal.classList.add('hidden');
     modal.classList.remove('flex');
   }
+
+  // --- Modal Create
+  function openCreateModal() {
+    document.getElementById('createModal').classList.remove('hidden');
+  }
+  function closeCreateModal() {
+    document.getElementById('createModal').classList.add('hidden');
+  }
+
+  // Toast
+  function toastCompat(title, message, type) {
+    if (window.showToast) return window.showToast(title, message, type);
+    const el = document.createElement('div');
+    el.textContent = title ? `${title}: ${message}` : (message || title || '');
+    el.style.position = 'fixed';
+    el.style.right = '16px';
+    el.style.bottom = '16px';
+    el.style.zIndex = '9999';
+    el.style.padding = '10px 14px';
+    el.style.borderRadius = '10px';
+    el.style.fontWeight = '600';
+    el.style.boxShadow = '0 8px 24px rgba(0,0,0,.2)';
+    el.style.background = (type === 'error') ? '#e53e3e' : '#C1D752';
+    el.style.color = (type === 'error') ? '#fff' : '#082459';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+
+  // AJAX create community
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('create-community-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.disabled = true; submitBtn.textContent = 'Creating...';
+
+      try {
+        const resp = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+          body: new FormData(form)
+        });
+
+        if (resp.redirected) {
+          window.location.href = resp.url;
+          return;
+        }
+
+        const data = await resp.json().catch(() => ({}));
+
+        if (!resp.ok) {
+          const isDuplicate =
+            (data && (data.code === 'duplicate_name')) ||
+            (resp.status === 409) ||
+            (/already\s+exists/i.test(data.message || ''));
+
+          if (isDuplicate) {
+            toastCompat('Duplicate Name', 'Community name already exists. Please use a different name.', 'error');
+          } else {
+            toastCompat('Error', data.message || 'Failed to create community.', 'error');
+          }
+          return;
+        }
+
+        // Success
+        toastCompat('Success', data.message || 'Community created successfully.', 'success');
+        form.reset();
+        closeCreateModal();
+
+        const target = data.redirect_url || "{% url 'discover_communities' %}";
+        setTimeout(() => { window.location.href = target; }, 1200);
+
+      } catch (err) {
+        toastCompat('Error', 'Unexpected error occurred.', 'error');
+      } finally {
+        submitBtn.disabled = false; submitBtn.textContent = originalBtnText;
+      }
+    });
+  });
 </script>
 
 {% endblock %}

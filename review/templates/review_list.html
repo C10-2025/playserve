@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<style>
+body {
+  background: url('/static/image/background.svg') no-repeat center center fixed;
+  background-size: cover;
+  font-family: "Poppins", sans-serif;
+  overflow: hidden;
+}
+
+/* Container full width */
+.review-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Review section */
+.review-section {
+  color: #f5f5f5;
+  background: #1a2b4c;
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  padding: 42px 48px;
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+}
+
+/* Header */
+.review-header {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  background: #1a2b4c;
+  z-index: 2;
+  padding-bottom: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.review-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+  letter-spacing: 0.6px;
+}
+
+.header-divider {
+  height: 3px;
+  background: #b0d235;
+  width: 160px;
+  border-radius: 2px;
+}
+
+/* Sorting + search */
+.left-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.sort-select {
+  background: #fff;
+  color: #1a2b4c;
+  border: 1px solid #b0d235;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 600;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input {
+  border: 1px solid #b0d235;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background-color: #fff;
+  color: #1a2b4c;
+  font-size: 14px;
+  width: 240px;
+}
+
+.search-btn {
+  background-color: #b0d235;
+  color: #1a2b4c;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* === button css === */
+.add-review-btn {
+  background: #b0d235;
+  color: #1a2b4c;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 22px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+.add-review-btn:hover {
+  background: #a2c52e;
+  transform: translateY(-1px);
+}
+
+/* Review list scroll */
+.review-content {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 8px;
+}
+
+.review-card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+  padding: 28px 30px;
+  margin-bottom: 28px;
+  color: #1a2b4c;
+}
+
+/* Preview area */
+.review-komentar {
+  font-size: 0.97rem;
+  color: #333;
+  background: #f7f7f7;
+  border-radius: 10px;
+  padding: 12px 15px;
+  line-height: 1.6;
+}
+
+/* === Floating Admin Analytics Box === */
+.admin-floating-box {
+  position: fixed;
+  right: 25px;
+  top: 120px;
+  width: 230px;
+  background: #1a2b4c;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  z-index: 999;
+  border: 2px solid #1a2b4c;
+}
+
+.admin-floating-box h3 {
+  margin-top: 0;
+  margin-bottom: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f5f5f5; 
+  text-transform: uppercase;
+}
+
+/* Stat items */
+.stat-item {
+  background: #f7f7f7;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid #e6e6e6;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a2b4c;
+}
+
+/* Responsive fallback */
+@media (max-width: 1100px) {
+  .admin-floating-box {
+    position: static;
+    width: 100%;
+    margin-top: 20px;
+  }
+}
+</style>
+
+
+
+
+<div class="review-container">
+  <!-- Left: Review list -->
+  <div class="review-section">
+    <div class="review-header">
+      <div>
+        <h2 style="margin:0;">
+          {% if request.user.is_staff or request.user.is_superuser %}
+            Review Management
+          {% else %}
+            Court Reviews
+          {% endif %}
+        </h2>
+        <div style="height:3px;width:120px;background:#b0d235;border-radius:2px;margin-top:6px;"></div>
+      </div>
+
+      <div class="left-controls">
+        <!-- Sort select (left of search) -->
+        <form id="sort-form" method="get" style="display:inline;">
+          {# Keep search value when sorting #}
+          <input type="hidden" name="search" value="{{ request.GET.search }}">
+          <select name="sort" class="sort-select" onchange="document.getElementById('sort-form').submit()">
+            <option value="none" {% if sort == 'none' %}selected{% endif %}>Rating: Default</option>
+            <option value="avg_desc" {% if sort == 'avg_desc' %}selected{% endif %}>Rating: High → Low</option>
+            <option value="avg_asc" {% if sort == 'avg_asc' %}selected{% endif %}>Rating: Low → High</option>
+          </select>
+        </form>
+
+        <!-- Search bar -->
+        <form method="get" action="{% url 'review:review_list_search_bar' %}" class="search-form" style="margin-left:8px;">
+          <input type="text" name="search" placeholder="Search by name or city..." value="{{ request.GET.search }}" class="search-input" />
+          <button type="submit" class="search-btn">🔍</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="add-review-container"></div>
+
+    <!--Review content-->
+    <div class="review-content">
+      {% for field in fields %}
+        <div class="review-card">
+          <div style="display:flex; gap:16px; align-items:center; justify-content:space-between;">
+            <div style="display:flex; gap:16px; align-items:center; flex:1;">
+              {% if field.image_url %}
+                <img src="{{ field.image_url }}" alt="thumb" style="width:80px;height:80px;border-radius:10px;object-fit:cover;">
+              {% endif %}
+              <div style="flex:1;">
+                <div style="font-weight:700; font-size:1.1rem;">{{ field.name }}</div>
+                <div style="color:#445; margin-top:6px;">
+                  {{ field.address }} • Rp {{ field.price_per_hour }}
+                </div>
+                <div style="margin-top:6px; color:#333;">
+                  Avg rating: <strong>{{ field.avg_rating|floatformat:1 }}</strong> • Reviews: <strong>{{ field.review_count }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="add-review-btn" style="margin-right:8px" onclick="toggleReviewForm('{{ field.id }}')">Add Review</button>
+              <button class="add-review-btn" style="background:#fff;color:#1a2b4c;border:1px solid #d6e8c5" onclick="viewComments('{{ field.id }}')">View Comments</button>
+            </div>
+          </div>
+
+          <div class="review-komentar" style="margin-top:12px;">
+            Latest reviews preview:
+            {% with comments=field.review_set.all|slice:":2" %}
+              {% if comments %}
+                <ul style="margin:8px 0; padding-left:18px">
+                  {% for c in comments %}
+                    <li style="margin-bottom:6px">
+                      {% for i in "12345" %}
+                        {% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}
+                      {% endfor %}
+                      — <strong>{{ c.user.username }}</strong>: {{ c.komentar|truncatechars:60 }}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <div style="color:#777; margin-top:8px">No reviews yet.</div>
+              {% endif %}
+            {% endwith %}
+          </div>
+        </div>
+      {% empty %}
+        <p class="no-reviews">No courts found.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Right: Admin analytics sidebar -->
+  <div class="admin-sidebar">
+    {% if request.user.is_authenticated and request.user.is_staff or request.user.is_authenticated and request.user.is_superuser %}
+    <div class="admin-floating-box">
+      <h3>Admin Analytics</h3>
+
+      <div class="stat-item">
+        <div class="stat-label">Total reviews</div>
+        <div class="stat-value">{{ analytics.total_reviews }}</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Mean rating</div>
+        <div class="stat-value">
+          {% if analytics.mean %}{{ analytics.mean|floatformat:2 }}{% else %}N/A{% endif %}
+        </div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Median rating</div>
+        <div class="stat-value">
+          {% if analytics.median %}{{ analytics.median|floatformat:2 }}{% else %}N/A{% endif %}
+        </div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Mode rating</div>
+        <div class="stat-value">
+          {% if analytics.mode %}{{ analytics.mode|floatformat:2 }}{% else %}N/A{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function toggleReviewForm(fieldId) {
+  if (!fieldId) return;
+  const container = document.getElementById('add-review-container');
+  if (!container) return;
+
+  const existingModal = document.getElementById('review-form-container');
+  if (existingModal) {
+    existingModal.remove();
+    return;
+  }
+
+  const url = '{% url "review:add_review" %}' + '?field=' + parseInt(fieldId, 10);
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(resp => resp.text())
+    .then(html => {
+      container.innerHTML = html;
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        if (script.src) newScript.src = script.src;
+        else newScript.textContent = script.textContent;
+        document.body.appendChild(newScript);
+        script.remove();
+      });
+    })
+    .catch(() => alert('Failed to load form.'));
+}
+
+function viewComments(fieldId) {
+  const container = document.getElementById('add-review-container');
+  if (!container) return;
+  const url = '{% url "review:view_comments" 0 %}'.replace('/0/', '/' + parseInt(fieldId, 10) + '/');
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(resp => resp.text())
+    .then(html => {
+      container.innerHTML = html;
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        if (script.src) newScript.src = script.src;
+        else newScript.textContent = script.textContent;
+        document.body.appendChild(newScript);
+        script.remove();
+      });
+    })
+    .catch(() => alert('Failed to load comments.'));
+}
+</script>
+
+{% endblock %}

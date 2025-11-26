@@ -9,6 +9,8 @@ from django.http import JsonResponse
 from django.db.models import Q
 from .models import PlayingField, Booking
 from .forms import BookingStepOneForm, BookingStepTwoForm, BookingStepThreeForm, FieldForm
+from django.http import HttpResponse
+from django.core import serializers
 
 class FieldListView(ListView):
     """Court listing with search and filters"""
@@ -558,3 +560,9 @@ def admin_verify_payment(request, booking_id):
     return render(request, 'booking/admin_verify_payment.html', {
         'booking': booking
     })
+
+# JSON helpers (dev only)
+def show_json(request):
+    news_list = PlayingField.objects.all()
+    json_data = serializers.serialize("json", news_list)
+    return HttpResponse(json_data, content_type="application/json")

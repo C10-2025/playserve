@@ -32,7 +32,7 @@
 
   <!-- Content -->
   <section class="w-full px-4">
-    <section class="bg-blue-900 bg-opacity-80 backdrop-blur-sm rounded-2xl p-6 md:p-12 lg:p-16 max-w-6xl mx-auto my-12 shadow-2xl">
+    <section class="bg-blue-900 backdrop-blur-sm rounded-2xl p-6 md:p-12 lg:p-16 max-w-7xl mx-auto my-12 shadow-2xl" style="background: #092B69;">
 
       <h2 class="text-center text-3xl font-bold text-white mb-10">
         Discover Communities
@@ -116,14 +116,20 @@
           {% endif %}
         </div>
         {% empty %}
-          <div class="col-span-1 md:grid-cols-2 lg:grid-cols-3 flex justify-center items-center h-64">
-            <p class="text-center text-gray-300 text-lg">No communities found.</p>
+          <div class="col-span-full">
+            <div class="flex items-center justify-center py-20">
+              <p class="text-center text-gray-300 text-lg">No communities found.</p>
+            </div>
           </div>
-        {% endfor %}
+          {% endfor %}
+
       </div>
 
     </section>
+    
   </section>
+  
+  
 </main>
 
 <!-- Edit Modal -->

@@ -9,6 +9,8 @@ from django.http import JsonResponse
 from django.db.models import Q
 from .models import PlayingField, Booking
 from .forms import BookingStepOneForm, BookingStepTwoForm, BookingStepThreeForm, FieldForm
+from django.http import HttpResponse
+from django.core import serializers
 
 class FieldListView(ListView):
     """Court listing with search and filters"""
@@ -558,3 +560,59 @@ def admin_verify_payment(request, booking_id):
     return render(request, 'booking/admin_verify_payment.html', {
         'booking': booking
     })
+
+# JSON helpers (dev only)
+# Disclaimer: It should give you the necessary info for flutter version, but some 'ghost' fields are initialized as empty string
+# or None/null
+def show_json(request):
+    fields = PlayingField.objects.all()
+
+    data = [
+        {
+            "id": str(field.id),
+            "name": field.name,
+            "address": field.address,
+            "city": field.city,
+            "latitude": float(field.latitude) if field.latitude is not None else None,
+            "longitude": float(field.longitude) if field.longitude is not None else None,
+
+            # Court Details
+            "number_of_courts": field.number_of_courts,
+            "has_lights": field.has_lights,
+            "has_backboard": field.has_backboard,
+            "court_surface": field.court_surface,
+
+            # Pricing
+            "price_per_hour": float(field.price_per_hour),
+
+            # Owner / Contact
+            "owner_name": field.owner_name,
+            "owner_contact": field.owner_contact,
+            "owner_bank_account": field.owner_bank_account,
+
+            # Operating Hours
+            "opening_time": field.opening_time.isoformat() if field.opening_time else None,
+            "closing_time": field.closing_time.isoformat() if field.closing_time else None,
+
+            # Additional Features
+            "description": field.description,
+            "amenities": field.amenities,
+            "court_image": (
+                request.build_absolute_uri(field.court_image.url)
+                if field.court_image else None
+            ),
+            "image_url": field.image_url,
+
+            # Metadata
+            "created_by": field.created_by.username if field.created_by else None,
+            "created_at": field.created_at.isoformat() if field.created_at else None,
+            "updated_at": field.updated_at.isoformat() if field.updated_at else None,
+            "is_active": field.is_active,
+
+            # Computed Property
+            "price_range_category": field.price_range_category,
+        }
+        for field in fields
+    ]
+
+    return JsonResponse(data, safe=False)

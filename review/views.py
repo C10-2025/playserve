@@ -5,6 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.db.models import Q, Avg, Count, Value
 from django.db.models.functions import Coalesce
+from django.core import serializers
 
 from review.models import Review
 from booking.models import PlayingField
@@ -213,3 +214,17 @@ def review_list_search_bar(request):
         )
 
     return render(request, 'review_list.html', {'fields': fields})
+
+# JSON helpers (for dev)
+def show_json(request):
+    review_list = Review.objects.all()
+    data = [
+        {
+            'username': review.user.username,
+            'rating': review.rating,
+            'comment': review.komentar,
+            'fieldName': review.field.name,
+        }
+        for review in review_list
+    ]
+    return JsonResponse(data, safe=False)

@@ -217,6 +217,14 @@ def review_list_search_bar(request):
 
 # JSON helpers (for dev)
 def show_json(request):
-    news_list = Review.objects.all()
-    json_data = serializers.serialize("json", news_list)
-    return HttpResponse(json_data, content_type="application/json")
+    review_list = Review.objects.all()
+    data = [
+        {
+            'username': review.user.username,
+            'rating': review.rating,
+            'comment': review.komentar,
+            'fieldName': review.field.name,
+        }
+        for review in review_list
+    ]
+    return JsonResponse(data, safe=False)

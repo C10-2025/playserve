@@ -5,6 +5,18 @@ from django.http import JsonResponse
 from .models import Community, Post, Reply
 from profil.models import Profile
 from django.db.models import Q
+from django.urls import reverse 
+from profil.models import Profile
+
+def main_view(request):
+    context = {}
+    if request.user.is_authenticated:
+        try:
+            context['profile'] = request.user.profile
+        except Profile.DoesNotExist:
+            context['profile'] = None
+            
+    return render(request, 'main.html', context)
 
 def is_admin(user):
     return user.is_staff or user.is_superuser
@@ -35,28 +47,25 @@ def discover_communities(request):
 
 @login_required
 def my_communities(request):
-    tab = request.GET.get('tab', 'joined')
-    if tab == 'created':
+    is_admin = request.user.is_staff or request.user.is_superuser
+
+    if is_admin:
         communities = Community.objects.filter(creator=request.user).order_by('-created_at')
+        mode = 'created'         # untuk empty state di template
         subtitle = 'Created by Me'
     else:
         communities = request.user.joined_communities.all().order_by('-created_at')
+        mode = 'joined'
         subtitle = 'Joined'
 
     context = {
         'communities': communities,
-        'tab': tab,
+        'is_admin': is_admin,
+        'mode': mode,            # 'created' atau 'joined' (tanpa tab/url param)
         'subtitle': subtitle,
+        'profile': getattr(request.user, 'profile', None) if request.user.is_authenticated else None,
     }
-
-    if request.user.is_authenticated:
-        try:
-            context['profile'] = request.user.profile
-        except Profile.DoesNotExist:
-            context['profile'] = None
-
     return render(request, 'my_communities.html', context)
-
 
 @login_required
 def join_community(request, community_id):
@@ -82,26 +91,57 @@ def join_community(request, community_id):
 @login_required
 @user_passes_test(is_admin)
 def create_community(request):
-    if request.method == "POST":
-        name = request.POST.get("name", "").strip()
-        description = request.POST.get("description", "").strip()
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
-        if not name or not description:
-            messages.error(request, "Both name and description are required.")
-        else:
+        if not name:
+            msg = 'Name is required.'
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'toast_type': 'error', 'message': msg}, status=400)
+            messages.error(request, msg)
+            return redirect('discover_communities')
+
+        existing = Community.objects.filter(name__iexact=name).first()
+        if existing:
+            msg = f'Community with name "{name}" already exists. Please use a different name.'
+            if is_ajax:
+                return JsonResponse(
+                    {'status': 'error', 'toast_type': 'error', 'message': msg, 'code': 'duplicate_name'},
+                    status=409
+                )
+            messages.error(request, msg)
+            return redirect('discover_communities')
+
+        try:
             community = Community.objects.create(
                 name=name,
                 description=description,
-                creator=request.user,
+                creator=request.user
             )
+            msg = f'Community "{name}" created successfully.'
+            if is_ajax:
+                return JsonResponse({
+                    'status': 'success',
+                    'toast_type': 'success',
+                    'message': msg,
+                    'redirect_url': reverse('discover_communities')
+                }, status=200)
 
-            community.members.add(request.user)
+            messages.success(request, msg)
+            return redirect('discover_communities')
 
-            messages.success(request, f"Community '{name}' created successfully.")
-        return redirect("discover_communities")
-    return redirect("discover_communities")
+        except Exception:
+            generic = 'Something went wrong. Please try again.'
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'toast_type': 'error', 'message': generic}, status=500)
+            messages.error(request, generic)
+            return redirect('discover_communities')
 
-
+    return render(request, 'create_community.html', {
+        'profile': getattr(request.user, 'profile', None)
+    })
 
 
 @login_required

@@ -332,3 +332,29 @@ def finish_match_session(request):
         return JsonResponse({'success': False, 'error': 'Profile missing for one of the players.'}, status=500)
     except Exception as e:
         return JsonResponse({'success': False, 'error': f'Failed to finalize match: {str(e)}'}, status=500)
+    
+@login_required
+def get_active_session(request):
+    user = request.user
+
+    session = MatchSession.objects.filter(
+        Q(player1=user) | Q(player2=user),
+        result='PENDING'
+    ).select_related('player1', 'player2').first()
+
+    if not session:
+        return JsonResponse({"has_session": False})
+
+    return JsonResponse({
+        "has_session": True,
+        "session_id": session.id,
+        "player1": {
+            "id": session.player1.id,
+            "username": session.player1.username,
+        },
+        "player2": {
+            "id": session.player2.id,
+            "username": session.player2.username,
+        },
+        "you_are_player1": session.player1 == user
+    })

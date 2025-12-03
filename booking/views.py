@@ -14,7 +14,66 @@ from .models import PlayingField, Booking
 from .forms import BookingStepOneForm, BookingStepTwoForm, BookingStepThreeForm, FieldForm
 from django.http import HttpResponse
 from django.core import serializers
-import models
+
+
+def _serialize_field(field, request):
+    """Serialize PlayingField to dict for JSON APIs."""
+    return {
+        "id": str(field.id),
+        "name": field.name,
+        "address": field.address,
+        "city": field.city,
+        "latitude": float(field.latitude) if field.latitude is not None else None,
+        "longitude": float(field.longitude) if field.longitude is not None else None,
+        "number_of_courts": field.number_of_courts,
+        "has_lights": field.has_lights,
+        "has_backboard": field.has_backboard,
+        "court_surface": field.court_surface,
+        "price_per_hour": float(field.price_per_hour),
+        "owner_name": field.owner_name,
+        "owner_contact": field.owner_contact,
+        "owner_bank_account": field.owner_bank_account,
+        "opening_time": field.opening_time.isoformat() if field.opening_time else None,
+        "closing_time": field.closing_time.isoformat() if field.closing_time else None,
+        "description": field.description,
+        "amenities": field.amenities,
+        "court_image": (
+            request.build_absolute_uri(field.court_image.url)
+            if field.court_image else None
+        ),
+        "image_url": field.image_url,
+        "created_by": field.created_by.username if field.created_by else None,
+        "created_at": field.created_at.isoformat() if field.created_at else None,
+        "updated_at": field.updated_at.isoformat() if field.updated_at else None,
+        "is_active": field.is_active,
+        "price_range_category": field.price_range_category,
+    }
+
+
+def _serialize_booking(booking, request):
+    """Serialize Booking to dict for JSON APIs."""
+    return {
+        "id": booking.id,
+        "field": {
+            "id": booking.field.id,
+            "name": booking.field.name,
+            "city": booking.field.city,
+            "image_url": booking.field.image_url,
+            "court_image": (
+                request.build_absolute_uri(booking.field.court_image.url)
+                if booking.field.court_image else None
+            ),
+        },
+        "booking_date": booking.booking_date.isoformat(),
+        "start_time": booking.start_time.isoformat(),
+        "end_time": booking.end_time.isoformat(),
+        "duration_hours": float(booking.duration_hours),
+        "total_price": float(booking.total_price),
+        "status": booking.status,
+        "notes": booking.notes,
+        "can_cancel": booking.can_cancel,
+        "created_at": booking.created_at.isoformat() if booking.created_at else None,
+    }
 
 class FieldListView(ListView):
     """Court listing with search and filters"""
@@ -565,58 +624,159 @@ def admin_verify_payment(request, booking_id):
         'booking': booking
     })
 
+# === JSON API endpoints ===
+
+def api_fields(request):
+    """List all active fields for mobile."""
+    fields = PlayingField.objects.filter(is_active=True)
+    data = [_serialize_field(field, request) for field in fields]
+    return JsonResponse({"status": "success", "data": data}, safe=False)
+
+
+def api_availability(request):
+    """Check availability (wrapper around check_availability_ajax)."""
+    field_id = request.GET.get('field_id')
+    date = request.GET.get('date')
+    start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+
+    if not all([field_id, date, start_time, end_time]):
+        return JsonResponse({
+            "status": "error",
+            "available": False,
+            "message": "Missing parameters"
+        }, status=400)
+
+    try:
+        field = PlayingField.objects.get(id=field_id)
+        temp_booking = Booking(
+            field=field,
+            booking_date=datetime.strptime(date, '%Y-%m-%d').date(),
+            start_time=datetime.strptime(start_time, '%H:%M').time(),
+            end_time=datetime.strptime(end_time, '%H:%M').time(),
+        )
+        is_available, message = temp_booking.check_availability()
+        return JsonResponse({
+            "status": "success",
+            "available": is_available,
+            "message": message
+        })
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "available": False,
+            "message": str(e)
+        }, status=400)
+
+
+@csrf_exempt
+@login_required
+def api_book(request):
+    """Create a booking via JSON."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    try:
+        payload = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
+
+    required = ["field_id", "booking_date", "start_time", "end_time", "booker_name", "booker_phone"]
+    if any(k not in payload or not payload[k] for k in required):
+        return JsonResponse({"status": "error", "message": "Missing required fields"}, status=400)
+
+    try:
+        field = PlayingField.objects.get(id=payload["field_id"], is_active=True)
+    except PlayingField.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Field not found"}, status=404)
+
+    try:
+        booking_date = datetime.strptime(payload["booking_date"], "%Y-%m-%d").date()
+        start_time = datetime.strptime(payload["start_time"], "%H:%M").time()
+        end_time = datetime.strptime(payload["end_time"], "%H:%M").time()
+    except ValueError:
+        return JsonResponse({"status": "error", "message": "Invalid date/time format"}, status=400)
+
+    temp_booking = Booking(
+        field=field,
+        booking_date=booking_date,
+        start_time=start_time,
+        end_time=end_time,
+    )
+    is_available, message = temp_booking.check_availability()
+    if not is_available:
+        return JsonResponse({"status": "error", "message": message}, status=409)
+
+    duration_hours = payload.get("duration_hours")
+    if not duration_hours:
+        start_minutes = start_time.hour * 60 + start_time.minute
+        end_minutes = end_time.hour * 60 + end_time.minute
+        duration_hours = (end_minutes - start_minutes) / 60
+
+    booking = Booking(
+        user=request.user,
+        field=field,
+        booking_date=booking_date,
+        start_time=start_time,
+        end_time=end_time,
+        duration_hours=duration_hours,
+        booker_name=payload["booker_name"],
+        booker_phone=payload["booker_phone"],
+        booker_email=payload.get("booker_email", ""),
+        notes=payload.get("notes", ""),
+        status="PENDING_PAYMENT",
+    )
+
+    booking.total_price = booking.calculate_price()
+    booking.save()
+
+    return JsonResponse({
+        "status": "success",
+        "message": "Booking created",
+        "data": _serialize_booking(booking, request)
+    }, status=201)
+
+
+@login_required
+def api_my_bookings(request):
+    """List bookings for the current user."""
+    bookings = Booking.objects.filter(user=request.user).select_related("field").order_by('-booking_date', '-start_time')
+    data = [_serialize_booking(b, request) for b in bookings]
+    return JsonResponse({"status": "success", "data": data}, safe=False)
+
+
+@csrf_exempt
+@login_required
+def api_cancel_booking(request):
+    """Cancel a booking if allowed."""
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    try:
+        payload = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
+
+    booking_id = payload.get("booking_id")
+    if not booking_id:
+        return JsonResponse({"status": "error", "message": "Missing booking_id"}, status=400)
+
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+
+    if not booking.can_cancel:
+        return JsonResponse({"status": "error", "message": "Cannot cancel this booking"}, status=403)
+
+    booking.status = 'CANCELLED'
+    booking.cancelled_at = timezone.now()
+    booking.save()
+
+    return JsonResponse({"status": "success", "message": "Booking cancelled"})
+
+
 # JSON helpers (dev only)
 # Disclaimer: It should give you the necessary info for flutter version, but some 'ghost' fields are initialized as empty string
 # or None/null
 def show_json(request):
     fields = PlayingField.objects.all()
-
-    data = [
-        {
-            "id": str(field.id),
-            "name": field.name,
-            "address": field.address,
-            "city": field.city,
-            "latitude": float(field.latitude) if field.latitude is not None else None,
-            "longitude": float(field.longitude) if field.longitude is not None else None,
-
-            # Court Details
-            "number_of_courts": field.number_of_courts,
-            "has_lights": field.has_lights,
-            "has_backboard": field.has_backboard,
-            "court_surface": field.court_surface,
-
-            # Pricing
-            "price_per_hour": float(field.price_per_hour),
-
-            # Owner / Contact
-            "owner_name": field.owner_name,
-            "owner_contact": field.owner_contact,
-            "owner_bank_account": field.owner_bank_account,
-
-            # Operating Hours
-            "opening_time": field.opening_time.isoformat() if field.opening_time else None,
-            "closing_time": field.closing_time.isoformat() if field.closing_time else None,
-
-            # Additional Features
-            "description": field.description,
-            "amenities": field.amenities,
-            "court_image": (
-                request.build_absolute_uri(field.court_image.url)
-                if field.court_image else None
-            ),
-            "image_url": field.image_url,
-
-            # Metadata
-            "created_by": field.created_by.username if field.created_by else None,
-            "created_at": field.created_at.isoformat() if field.created_at else None,
-            "updated_at": field.updated_at.isoformat() if field.updated_at else None,
-            "is_active": field.is_active,
-
-            # Computed Property
-            "price_range_category": field.price_range_category,
-        }
-        for field in fields
-    ]
-
+    data = [_serialize_field(field, request) for field in fields]
     return JsonResponse(data, safe=False)

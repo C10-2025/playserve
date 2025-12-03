@@ -25,5 +25,12 @@ urlpatterns = [
     path('admin/court/<int:field_id>/toggle/', views.admin_toggle_field_status, name='admin_toggle_field'),
 
     # View JSON
-    path('json/', show_json, name="show_json")
+    path('json/', show_json, name="show_json"),
+
+    # API for mobile
+    path('api/fields/', views.api_fields, name='api_fields'),
+    path('api/availability/', views.api_availability, name='api_availability'),
+    path('api/book/', views.api_book, name='api_book'),
+    path('api/my-bookings/', views.api_my_bookings, name='api_my_bookings'),
+    path('api/cancel/', views.api_cancel_booking, name='api_cancel_booking'),
 ]

@@ -1,3 +1,5 @@
+import json
+from datetime import datetime
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -7,10 +9,12 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
 from .models import PlayingField, Booking
 from .forms import BookingStepOneForm, BookingStepTwoForm, BookingStepThreeForm, FieldForm
 from django.http import HttpResponse
 from django.core import serializers
+import models
 
 class FieldListView(ListView):
     """Court listing with search and filters"""

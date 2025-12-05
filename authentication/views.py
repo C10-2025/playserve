@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from profil.models import Profile
 import json
 
-
 @csrf_exempt
 def login(request):
     if request.method != "POST":
@@ -20,9 +19,10 @@ def login(request):
         if user.is_active:
             auth_login(request, user)
             return JsonResponse({
-                "username": user.username,
                 "status": True,
-                "message": "Login successful!"
+                "message": "Login successful!",
+                "username": user.username,
+                "is_admin": user.is_superuser,
             }, status=200)
         else:
             return JsonResponse({
@@ -63,8 +63,7 @@ def register_step1(request):
             }, status=400)
 
         user = User.objects.create_user(username=username, password=password1)
-        Profile.objects.get_or_create(user=user)  # ✅ aman dari IntegrityError
-
+        Profile.objects.get_or_create(user=user) 
         return JsonResponse({
             "status": "success",
             "username": username,
@@ -124,3 +123,137 @@ def register_step2(request):
             "status": "error",
             "message": str(e)
         }, status=500)
+
+@csrf_exempt
+def check_login(request):
+    if request.user.is_authenticated:
+        return JsonResponse({
+            "is_logged_in": True,
+            "username": request.user.username
+        }, status=200)
+    else:
+        return JsonResponse({
+            "is_logged_in": False
+        }, status=200)
+
+
+@csrf_exempt
+def logout(request):
+    if request.user.is_authenticated:
+        auth_logout(request)
+        return JsonResponse({
+            "status": True,
+            "message": "Successfully logged out."
+        }, status=200)
+    else:
+        return JsonResponse({
+            "status": False,
+            "message": "No active session found."
+        }, status=400)
+    
+@csrf_exempt
+def edit_profile(request):
+    if request.method != "POST":
+        return JsonResponse({"status": False, "message": "Invalid request method."}, status=400)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": False, "message": "User not logged in."}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        username = data.get("username")
+        lokasi = data.get("lokasi")
+        instagram = data.get("instagram")
+        avatar = data.get("avatar")
+
+        user = request.user
+        profile = Profile.objects.get(user=user)
+
+        if username and username != user.username:
+            if hasattr(profile, "username_changed") and profile.username_changed:
+                return JsonResponse({"status": False, "message": "Username cannot be changed again."}, status=400)
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({"status": False, "message": "Username already exists."}, status=400)
+            user.username = username
+            user.save()
+            profile.username_changed = True
+
+        if lokasi:
+            profile.lokasi = lokasi
+        if instagram is not None:
+            profile.instagram = instagram
+        if avatar:
+            profile.avatar = avatar
+
+        profile.save()
+
+        return JsonResponse({
+            "status": True,
+            "message": "Profile updated successfully.",
+            "username": user.username,
+            "lokasi": profile.lokasi,
+            "instagram": profile.instagram,
+            "avatar": profile.avatar,
+        }, status=200)
+    except Exception as e:
+        return JsonResponse({"status": False, "message": str(e)}, status=500)
+
+def get_user(request):
+    user = request.user
+    profile = getattr(user, 'profile', None)
+
+    data = {
+        "status": True,
+        "username": user.username,
+        "rank": getattr(profile, 'rank', 'BRONZE'),
+        "avatar": getattr(profile, 'avatar', 'image/avatar1.svg'),
+        "instagram": getattr(profile, 'instagram', ''),
+        "lokasi": getattr(profile, 'lokasi', 'Jakarta'),
+    }
+    return JsonResponse(data)
+
+@csrf_exempt
+def delete_profile(request):
+    if request.method != "POST":
+        return JsonResponse({
+            "status": False,
+            "message": "Invalid request method."
+        }, status=400)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            "status": False,
+            "message": "User not logged in."
+        }, status=401)
+
+    try:
+        user = request.user
+        Profile.objects.filter(user=user).delete()
+        auth_logout(request)
+        user.delete()
+
+        return JsonResponse({
+            "status": True,
+            "message": "Your account has been deleted successfully."
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({
+            "status": False,
+            "message": str(e)
+        }, status=500)
+
+@csrf_exempt
+def check_admin_status(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            "status": False,
+            "is_admin": False,
+            "message": "User not logged in."
+        }, status=401)
+
+    return JsonResponse({
+        "status": True,
+        "is_admin": request.user.is_superuser,
+        "username": request.user.username
+    }, status=200)

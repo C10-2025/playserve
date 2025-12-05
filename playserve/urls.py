@@ -28,6 +28,7 @@ urlpatterns = [
     path('community/', include('community.urls')),
     path('matchmaking/', include('matchmaking.urls')),
     path('review/', include('review.urls')),
+    path('auth/', include('authentication.urls')),
     path('', include('main.urls')),
     path('auth/', include('authentication.urls')),
 ]

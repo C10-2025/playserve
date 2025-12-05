@@ -15,4 +15,7 @@ urlpatterns = [
     path('action/create-request/', views.create_match_request, name='action_create_request'),
     path('action/handle-request/', views.handle_match_request, name='action_handle_request'),
     path('action/finish-session/', views.finish_match_session, name='action_finish_session'),
+
+    path('api/active-session/', views.get_active_session, name='api_active_session'),
+    path("api/opponent/<int:user_id>/", views.get_opponent_profile),
 ]

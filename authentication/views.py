@@ -20,9 +20,10 @@ def login(request):
         if user.is_active:
             auth_login(request, user)
             return JsonResponse({
-                "username": user.username,
                 "status": True,
-                "message": "Login successful!"
+                "message": "Login successful!",
+                "username": user.username,
+                "is_admin": user.is_superuser,
             }, status=200)
         else:
             return JsonResponse({

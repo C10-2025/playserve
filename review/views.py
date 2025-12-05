@@ -253,7 +253,6 @@ def proxy_image(request):
     except requests.RequestException as e:
         return HttpResponse(f'Error fetching image: {str(e)}', status=500)
 
-#TODO: use this view later
 @csrf_exempt
 def add_review_flutter(request):
     if request.method != 'POST':
@@ -292,3 +291,32 @@ def add_review_flutter(request):
         print("ADD REVIEW ERROR:", e)
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
+@csrf_exempt
+def delete_review_flutter(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    # Admin check
+    if not request.user.is_authenticated or not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"status": "error", "message": "Unauthorized"}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        username = data.get("username")
+        field_name = data.get("field_name")
+
+        review = Review.objects.filter(
+            user__username=username,
+            field__name=field_name
+        ).first()
+
+        if review is None:
+            return JsonResponse({"status": "error", "message": "Review not found"}, status=404)
+
+        review.delete()
+
+        return JsonResponse({"status": "success"}, status=200)
+
+    except Exception as e:
+        print("DELETE REVIEW ERROR:", e)
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)

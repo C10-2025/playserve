@@ -44,3 +44,4 @@ urlpatterns = [
     path('api/admin/bookings/<int:pk>/', views.admin_api_booking_detail, name='admin_api_booking_detail'),
     path('api/admin/bookings/<int:pk>/verify/', views.admin_api_verify_payment, name='admin_api_verify_payment'),
 ]
+

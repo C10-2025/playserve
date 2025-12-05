@@ -30,9 +30,14 @@ PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "jonathan-yitskhaq-playserve.pbp.cs.ui.ac.id"]
-CSRF_TRUSTED_ORIGINS = [ "https://jonathan-yitskhaq-playserve.pbp.cs.ui.ac.id"]
-
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "jonathan-yitskhaq-playserve.pbp.cs.ui.ac.id", "10.0.2.2"]
+CSRF_TRUSTED_ORIGINS = [ "https://jonathan-yitskhaq-playserve.pbp.cs.ui.ac.id", "http://127.0.0.1:8000","http://localhost:8000", "http://localhost:3000" ]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
 
 # Application definition
 
@@ -50,6 +55,7 @@ INSTALLED_APPS = [
     'review',
     'matchmaking',
     'community',
+    'authentication',
     'corsheaders',
 ]
 
@@ -63,6 +69,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'playserve.urls'

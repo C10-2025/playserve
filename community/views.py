@@ -8,6 +8,14 @@ from django.db.models import Q
 from django.urls import reverse 
 from profil.models import Profile
 from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
+from .models import Community, Post, Reply
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 
 def main_view(request):
     context = {}
@@ -52,30 +60,35 @@ from django.http import JsonResponse
 
 @require_GET
 def discover_communities_json(request):
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip()
 
     if query:
         communities = Community.objects.filter(name__icontains=query)
     else:
         communities = Community.objects.all()
 
-    # Jika user login → bisa menunjukkan mana saja yang sudah join
+    # Set ID komunitas yang sudah di-join user
     if request.user.is_authenticated:
         joined_ids = set(
             request.user.joined_communities.values_list('id', flat=True)
         )
     else:
-        # Jika user belum login → tidak ada komunitas yang "joined"
         joined_ids = set()
 
     data = []
     for c in communities:
+        is_joined = c.id in joined_ids
+        is_creator = request.user.is_authenticated and c.creator_id == request.user.id
+
         data.append({
             "id": c.id,
             "name": c.name,
             "description": c.description or "",
             "members_count": c.members.count(),
-            "is_joined": c.id in joined_ids,
+            "is_joined": is_joined,
+            "is_creator": is_creator,
+            # Flutter bisa pakai ini buat nentuin boleh klik detail atau nggak
+            "can_open": is_joined or is_creator,
         })
 
     return JsonResponse(data, safe=False, status=200)
@@ -103,6 +116,7 @@ def my_communities(request):
     }
     return render(request, 'my_communities.html', context)
 
+@csrf_exempt
 @login_required
 def join_community(request, community_id):
     community = get_object_or_404(Community, id=community_id)
@@ -246,6 +260,140 @@ def community_detail(request, community_id):
         except Profile.DoesNotExist:
             context['profile'] = None
     return render(request, 'community_detail.html', context)
+
+@login_required
+@require_GET
+def community_detail_json(request, community_id):
+    community = get_object_or_404(Community, id=community_id)
+
+    # sama seperti HTML: wajib member
+    if request.user not in community.members.all():
+        return JsonResponse(
+            {"error": "You must join this community to see its posts."},
+            status=403
+        )
+
+    posts_qs = community.posts.all().prefetch_related(
+        'author', 'replies', 'replies__author'
+    ).order_by('-created_at')
+
+    posts_data = []
+    for p in posts_qs:
+        posts_data.append({
+            "id": p.id,
+            "title": p.title,
+            "content": p.content,
+            "author": p.author.username,
+            "created_at": p.created_at.isoformat(),
+            "replies": [
+                {
+                    "id": r.id,
+                    "content": r.content,
+                    "author": r.author.username,
+                    "created_at": r.created_at.isoformat(),
+                }
+                for r in p.replies.all().order_by('created_at')
+            ],
+        })
+
+    data = {
+        "id": community.id,
+        "name": community.name,
+        "description": community.description or "",
+        "members_count": community.members.count(),
+        "is_creator": (request.user == community.creator),
+        "is_admin": request.user.is_staff or request.user.is_superuser,
+        "posts": posts_data,
+    }
+    return JsonResponse(data, status=200)
+@csrf_exempt
+@login_required
+@require_POST
+def create_post_json(request, community_id):
+    community = get_object_or_404(Community, id=community_id)
+
+    # harus member, sama kayak HTML
+    if request.user not in community.members.all():
+        return JsonResponse(
+            {"error": "You must join this community before posting."},
+            status=403
+        )
+
+    # coba baca JSON, fallback ke form-encoded
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        payload = request.POST
+
+    title = (payload.get('title') or '').strip()
+    content = (payload.get('content') or '').strip()
+
+    if not title or not content:
+        return JsonResponse(
+            {"error": "Both title and content are required."},
+            status=400
+        )
+
+    post = Post.objects.create(
+        community=community,
+        author=request.user,
+        title=title,
+        content=content,
+    )
+
+    return JsonResponse({
+        "status": "success",
+        "message": "Post created.",
+        "post": {
+            "id": post.id,
+            "title": post.title,
+            "content": post.content,
+            "author": post.author.username,
+            "created_at": post.created_at.isoformat(),
+            "replies": [],
+        }
+    }, status=201)
+@csrf_exempt
+@login_required
+@require_POST
+def create_reply_json(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    community = post.community
+
+    if request.user not in community.members.all():
+        return JsonResponse(
+            {"error": "You must join this community before replying."},
+            status=403
+        )
+
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        payload = request.POST
+
+    content = (payload.get('content') or '').strip()
+    if not content:
+        return JsonResponse(
+            {"error": "Content is required."},
+            status=400
+        )
+
+    reply = Reply.objects.create(
+        post=post,
+        author=request.user,
+        content=content,
+    )
+
+    return JsonResponse({
+        "status": "success",
+        "message": "Reply created.",
+        "reply": {
+            "id": reply.id,
+            "content": reply.content,
+            "author": reply.author.username,
+            "created_at": reply.created_at.isoformat(),
+        }
+    }, status=201)
 
 
 @login_required

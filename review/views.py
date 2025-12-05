@@ -256,22 +256,39 @@ def proxy_image(request):
 #TODO: use this view later
 @csrf_exempt
 def add_review_flutter(request):
-    if request.method == 'POST':
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "Unauthenticated"}, status=401)
+
+    try:
         data = json.loads(request.body)
 
-        user = request.user
-        field =  PlayingField.objects.filter(name=strip_tags(data.get("fieldName",""))).first()
-        rating = data.get("rating", "")
+        field_name = strip_tags(data.get("field_name", ""))
+        rating = int(data.get("rating", 0))
         komentar = strip_tags(data.get("comment", ""))
 
-        new_review = Review(
-            user=user,
+        field = PlayingField.objects.filter(name=field_name).first()
+        if field is None:
+            return JsonResponse({"status": "error", "message": "Field not found"}, status=404)
+
+        # Replace review if exists, else create
+        review_obj, created = Review.objects.update_or_create(
+            user=request.user,
             field=field,
-            rating=rating,
-            komentar=komentar,
+            defaults={
+                "rating": rating,
+                "komentar": komentar,
+            }
         )
-        new_review.save()
-        
-        return JsonResponse({"status": "success"}, status=200)
-    else:
-        return JsonResponse({"status": "error"}, status=401)
+
+        return JsonResponse({
+            "status": "success",
+            "action": "created" if created else "updated"
+        }, status=200)
+
+    except Exception as e:
+        print("ADD REVIEW ERROR:", e)
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+

@@ -9,7 +9,8 @@ from django.db import transaction
 from .models import MatchRequest, MatchSession 
 from profil.models import Profile 
 from django.contrib.auth.models import User
-import json 
+import json
+from django.views.decorators.csrf import csrf_exempt
 
 # Dashboard utama
 @login_required 
@@ -123,7 +124,7 @@ def get_incoming_requests_ajax(request):
             sender_rank = sender_profile.rank
             sender_lokasi = sender_profile.lokasi
             sender_avatar = sender_profile.avatar
-            sender_instagram = sender_profile.instagram,
+            sender_instagram = sender_profile.instagram
         else:
             # Fallback
             sender_rank = "N/A"
@@ -145,6 +146,7 @@ def get_incoming_requests_ajax(request):
     return JsonResponse({'requests': requests_data})
 
 # Handle pengiriman MatchRequest via AJAX
+@csrf_exempt
 @login_required
 @require_POST
 def create_match_request(request):
@@ -190,6 +192,7 @@ def create_match_request(request):
     }, status=201)
 
 # Handle accept dan reject
+@csrf_exempt
 @login_required
 @require_POST
 def handle_match_request(request):
@@ -267,7 +270,8 @@ def handle_match_request(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': f'Failed to start match: {str(e)}'}, status=500)
 
-# Handle Win/Lose/Cancel        
+# Handle Win/Lose/Cancel  
+@csrf_exempt      
 @login_required
 @require_POST
 def finish_match_session(request):
@@ -358,3 +362,20 @@ def get_active_session(request):
         },
         "you_are_player1": session.player1 == user
     })
+
+def get_opponent_profile(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+        profile = user.profile
+
+        return JsonResponse({
+            "user_id": user.id,
+            "username": user.username,
+            "instagram": profile.instagram or "",
+            "avatar": profile.avatar,
+            "lokasi": profile.lokasi,
+            "rank": profile.rank,
+            "kemenangan": profile.jumlah_kemenangan,
+        })
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found"}, status=404)

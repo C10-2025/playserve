@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'review',
     'matchmaking',
     'community',
+    'authentication',
     'corsheaders',
 ]
 

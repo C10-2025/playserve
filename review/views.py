@@ -1,11 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from review.forms import ReviewForm
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.html import strip_tags
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.db.models import Q, Avg, Count, Value
 from django.db.models.functions import Coalesce
 from django.core import serializers
+from django.http import HttpResponse
+import requests, json
 
 from review.models import Review
 from booking.models import PlayingField
@@ -74,6 +78,7 @@ def add_review(request):
 
     return redirect('review:review_list')
 
+# Also handles sorting logic and admin analytics
 def review_list(request):
     """
     Displays playing fields with review previews. Supports sorting by average rating
@@ -156,7 +161,7 @@ def review_list(request):
 
 def view_comments(request, field_id):
     field = get_object_or_404(PlayingField, pk=field_id)
-    comments = Review.objects.filter(field=field).order_by('-id')
+    reviews = Review.objects.filter(field=field).order_by('-id')
 
     is_admin_user = (
         request.user.is_authenticated and
@@ -165,7 +170,7 @@ def view_comments(request, field_id):
 
     context = {
         'field': field,
-        'comments': comments,
+        'reviews': reviews,
         'is_admin': is_admin_user
     }
 
@@ -203,7 +208,7 @@ def delete_review(request, review_id):
     }, status=400)
 
 
-# Search bar (kept unchanged but now fields can be annotated/sorted if you call this endpoint instead)
+# Search bar 
 def review_list_search_bar(request):
     search_query = request.GET.get('search', '')
     fields = PlayingField.objects.filter(is_active=True)
@@ -228,3 +233,45 @@ def show_json(request):
         for review in review_list
     ]
     return JsonResponse(data, safe=False)
+
+# Flutter views
+def proxy_image(request):
+    image_url = request.GET.get('url')
+    if not image_url:
+        return HttpResponse('No URL provided', status=400)
+    
+    try:
+        # Fetch image from external source
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+        
+        # Return the image with proper content type
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+    except requests.RequestException as e:
+        return HttpResponse(f'Error fetching image: {str(e)}', status=500)
+
+#TODO: use this view later
+@csrf_exempt
+def add_review_flutter(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+
+        user = request.user
+        field =  PlayingField.objects.filter(name=strip_tags(data.get("fieldName",""))).first()
+        rating = data.get("rating", "")
+        komentar = strip_tags(data.get("comment", ""))
+
+        new_review = Review(
+            user=user,
+            field=field,
+            rating=rating,
+            komentar=komentar,
+        )
+        new_review.save()
+        
+        return JsonResponse({"status": "success"}, status=200)
+    else:
+        return JsonResponse({"status": "error"}, status=401)

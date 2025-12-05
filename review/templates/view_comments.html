@@ -98,25 +98,25 @@
     </p>
 
     <div id="comments-list">
-      {% if comments %}
-        {% for c in comments %}
-          <div class="comment-item" id="comment-{{ c.id }}">
+      {% if reviews %}
+        {% for r in reviews %}
+          <div class="comment-item" id="comment-{{ r.id }}">
 
             <!-- NEW: Username -->
             <div class="comment-user">
-              {{ c.user.username }}
+              {{ r.user.username }}
             </div>
 
             <div class="comment-stars">
               {% for i in "12345" %}
-                {% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}
+                {% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}
               {% endfor %}
             </div>
 
-            <div class="comment-text">{{ c.komentar }}</div>
+            <div class="comment-text">{{ r.komentar }}</div>
 
             {% if is_admin %}
-              <button class="delete-comment-btn" data-review-id="{{ c.id }}" data-field-id="{{ field.id }}" onclick="deleteComment('{{ c.id }}')">
+              <button class="delete-comment-btn" data-review-id="{{ r.id }}" data-field-id="{{ field.id }}" onclick="deleteComment('{{ r.id }}')">
                 Delete Comment
               </button>
             {% endif %}

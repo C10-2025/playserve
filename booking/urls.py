@@ -33,4 +33,14 @@ urlpatterns = [
     path('api/book/', views.api_book, name='api_book'),
     path('api/my-bookings/', views.api_my_bookings, name='api_my_bookings'),
     path('api/cancel/', views.api_cancel_booking, name='api_cancel_booking'),
+    path('api/bookings/<int:pk>/upload-proof/', views.api_upload_payment_proof, name='api_upload_payment_proof'),
+
+    # Admin JSON APIs
+    path('api/admin/fields/', views.admin_api_fields_list, name='admin_api_fields_list'),
+    path('api/admin/fields/create/', views.admin_api_field_create, name='admin_api_field_create'),
+    path('api/admin/fields/<int:pk>/update/', views.admin_api_field_update, name='admin_api_field_update'),
+    path('api/admin/fields/<int:pk>/delete/', views.admin_api_field_delete, name='admin_api_field_delete'),
+    path('api/admin/pending-bookings/', views.admin_api_pending_bookings, name='admin_api_pending_bookings'),
+    path('api/admin/bookings/<int:pk>/', views.admin_api_booking_detail, name='admin_api_booking_detail'),
+    path('api/admin/bookings/<int:pk>/verify/', views.admin_api_verify_payment, name='admin_api_verify_payment'),
 ]

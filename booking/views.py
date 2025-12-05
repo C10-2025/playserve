@@ -71,8 +71,14 @@ def _serialize_booking(booking, request):
         "total_price": float(booking.total_price),
         "status": booking.status,
         "notes": booking.notes,
+        "booker_name": booking.booker_name,
+        "booker_phone": booking.booker_phone,
+        "booker_email": booking.booker_email,
+        "payment_proof_url": request.build_absolute_uri(booking.payment_proof.url) if booking.payment_proof else None,
         "can_cancel": booking.can_cancel,
         "created_at": booking.created_at.isoformat() if booking.created_at else None,
+        "confirmed_at": booking.confirmed_at.isoformat() if booking.confirmed_at else None,
+        "cancelled_at": booking.cancelled_at.isoformat() if booking.cancelled_at else None,
     }
 
 class FieldListView(ListView):
@@ -780,3 +786,146 @@ def show_json(request):
     fields = PlayingField.objects.all()
     data = [_serialize_field(field, request) for field in fields]
     return JsonResponse(data, safe=False)
+
+
+# === Helper ===
+def _is_admin(user):
+    return hasattr(user, 'profile') and user.profile.role == 'ADMIN'
+
+
+# === User: upload payment proof ===
+@login_required
+def api_upload_payment_proof(request, pk):
+    """
+    Upload payment proof for a user's pending booking.
+    """
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    booking = get_object_or_404(
+        Booking, pk=pk, user=request.user, status='PENDING_PAYMENT'
+    )
+
+    form = BookingStepThreeForm(
+        data={"terms_agreed": True}, files=request.FILES, instance=booking
+    )
+    if form.is_valid():
+        form.save()
+        return JsonResponse({
+            "status": "success",
+            "message": "Payment proof uploaded",
+            "data": _serialize_booking(booking, request)
+        })
+    return JsonResponse({"status": "error", "errors": form.errors}, status=400)
+
+
+# === Admin Courts JSON APIs ===
+@login_required
+def admin_api_fields_list(request):
+    if not _is_admin(request.user):
+        return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+    fields = PlayingField.objects.filter(created_by=request.user)
+    data = [_serialize_field(f, request) for f in fields]
+    return JsonResponse({"status": "success", "data": data})
+
+
+@login_required
+def admin_api_field_create(request):
+    if not _is_admin(request.user):
+        return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    form = FieldForm(data=request.POST, files=request.FILES, user=request.user)
+    if form.is_valid():
+        field = form.save(commit=False)
+        field.created_by = request.user
+        field.save()
+        return JsonResponse({"status": "success", "data": _serialize_field(field, request)})
+    return JsonResponse({"status": "error", "errors": form.errors}, status=400)
+
+
+@login_required
+def admin_api_field_update(request, pk):
+    if not _is_admin(request.user):
+        return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    field = get_object_or_404(PlayingField, pk=pk, created_by=request.user)
+    form = FieldForm(data=request.POST, files=request.FILES, instance=field, user=request.user)
+    if form.is_valid():
+        field = form.save()
+        return JsonResponse({"status": "success", "data": _serialize_field(field, request)})
+    return JsonResponse({"status": "error", "errors": form.errors}, status=400)
+
+
+@login_required
+def admin_api_field_delete(request, pk):
+    if not _is_admin(request.user):
+        return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    field = get_object_or_404(PlayingField, pk=pk, created_by=request.user)
+    field.is_active = False
+    field.save()
+    return JsonResponse({"status": "success", "message": "Field deactivated"})
+
+
+# === Admin Payment Verification JSON APIs ===
+@login_required
+def admin_api_pending_bookings(request):
+    if not _is_admin(request.user):
+        return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+    bookings = Booking.objects.filter(
+        field__created_by=request.user,
+        status='PENDING_PAYMENT'
+    ).select_related('field', 'user')
+    data = [_serialize_booking(b, request) for b in bookings]
+    return JsonResponse({"status": "success", "data": data})
+
+
+@login_required
+def admin_api_booking_detail(request, pk):
+    if not _is_admin(request.user):
+        return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+    booking = get_object_or_404(
+        Booking.objects.select_related('field', 'user'),
+        pk=pk,
+        field__created_by=request.user
+    )
+    return JsonResponse({"status": "success", "data": _serialize_booking(booking, request)})
+
+
+@login_required
+def admin_api_verify_payment(request, pk):
+    if not _is_admin(request.user):
+        return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
+
+    booking = get_object_or_404(
+        Booking.objects.select_related('field', 'user'),
+        pk=pk,
+        field__created_by=request.user
+    )
+
+    try:
+        payload = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        payload = {}
+
+    decision = payload.get("decision")
+    if decision not in ["CONFIRM", "REJECT"]:
+        return JsonResponse({"status": "error", "message": "Invalid decision"}, status=400)
+
+    if decision == "CONFIRM":
+        booking.status = "CONFIRMED"
+        booking.confirmed_at = timezone.now()
+    else:
+        booking.status = "CANCELLED"
+        booking.cancelled_at = timezone.now()
+
+    booking.save()
+    return JsonResponse({"status": "success", "data": _serialize_booking(booking, request)})

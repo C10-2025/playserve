@@ -4,6 +4,9 @@ from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from profil.models import Profile
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from profil.models import Profile  
 import json
 
 @csrf_exempt
@@ -35,7 +38,6 @@ def login(request):
         "message": "Login failed, please check your username or password."
     }, status=401)
 
-
 @csrf_exempt
 def register_step1(request):
     if request.method == 'POST':
@@ -63,7 +65,7 @@ def register_step1(request):
             }, status=400)
 
         user = User.objects.create_user(username=username, password=password1)
-        Profile.objects.get_or_create(user=user) 
+        Profile.objects.get_or_create(user=user)
         return JsonResponse({
             "status": "success",
             "username": username,
@@ -77,9 +79,6 @@ def register_step1(request):
 
 @csrf_exempt
 def register_step2(request):
-    """
-    Step 2: Lengkapi profil user yang sudah dibuat di Step 1.
-    """
     if request.method != "POST":
         return JsonResponse({
             "status": False,
@@ -136,7 +135,6 @@ def check_login(request):
             "is_logged_in": False
         }, status=200)
 
-
 @csrf_exempt
 def logout(request):
     if request.user.is_authenticated:
@@ -150,7 +148,7 @@ def logout(request):
             "status": False,
             "message": "No active session found."
         }, status=400)
-    
+
 @csrf_exempt
 def edit_profile(request):
     if request.method != "POST":
@@ -198,50 +196,29 @@ def edit_profile(request):
     except Exception as e:
         return JsonResponse({"status": False, "message": str(e)}, status=500)
 
+
+
 def get_user(request):
     user = request.user
     profile = getattr(user, 'profile', None)
 
+    # kalau admin, paksa rank "ADMIN"
+    if user.is_superuser or user.is_staff:
+        rank = "ADMIN"
+    else:
+        rank = getattr(profile, 'rank', 'BRONZE')
+
     data = {
         "status": True,
         "username": user.username,
-        "rank": getattr(profile, 'rank', 'BRONZE'),
+        "rank": rank,
         "avatar": getattr(profile, 'avatar', 'image/avatar1.svg'),
         "instagram": getattr(profile, 'instagram', ''),
         "lokasi": getattr(profile, 'lokasi', 'Jakarta'),
     }
     return JsonResponse(data)
 
-@csrf_exempt
-def delete_profile(request):
-    if request.method != "POST":
-        return JsonResponse({
-            "status": False,
-            "message": "Invalid request method."
-        }, status=400)
 
-    if not request.user.is_authenticated:
-        return JsonResponse({
-            "status": False,
-            "message": "User not logged in."
-        }, status=401)
-
-    try:
-        user = request.user
-        Profile.objects.filter(user=user).delete()
-        auth_logout(request)
-        user.delete()
-
-        return JsonResponse({
-            "status": True,
-            "message": "Your account has been deleted successfully."
-        }, status=200)
-
-    except Exception as e:
-        return JsonResponse({
-            "status": False,
-            "message": str(e)
-        }, status=500)
 
 @csrf_exempt
 def check_admin_status(request):
@@ -257,3 +234,83 @@ def check_admin_status(request):
         "is_admin": request.user.is_superuser,
         "username": request.user.username
     }, status=200)
+
+@csrf_exempt
+def get_all_users(request):
+    # Cek Admin
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse({"status": False, "message": "Unauthorized"}, status=403)
+
+    users = User.objects.all().select_related('profile')
+    data = []
+
+    for u in users:
+        # Skip superuser agar admin tidak menghapus dirinya sendiri
+        if u.is_superuser:
+            continue
+            
+        try:
+            profile = u.profile
+        except:
+            profile = None
+        data.append({
+            "username": str(u.username) if u.username else "Unknown",
+            "avatar": str(profile.avatar) if (profile and profile.avatar) else "image/avatar1.png",
+            "rank": str(profile.rank) if (profile and profile.rank) else "BRONZE",
+            "instagram": str(profile.instagram) if (profile and profile.instagram) else "",
+            "lokasi": str(profile.lokasi) if (profile and profile.lokasi) else "Unknown",
+        })
+
+    return JsonResponse({"status": True, "users": data}, status=200)
+
+@csrf_exempt
+def admin_delete_user(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse({
+            "status": False,
+            "message": "Unauthorized. Only admins can delete users."
+        }, status=403)
+
+    try:
+        # 🔻 HAPUS/GANTI BAGIAN INI 🔻
+        # data = json.loads(request.body) 
+        # username = data.get("username")
+
+        # ✅ GANTI JADI INI (Pakai request.POST):
+        username = request.POST.get("username")
+
+        if not username:
+            return JsonResponse({
+                "status": False,
+                "message": "Username is required."
+            }, status=400)
+
+        target_user = User.objects.get(username=username)
+
+        if target_user.is_superuser:
+            return JsonResponse({
+                "status": False,
+                "message": "Cannot delete an admin account."
+            }, status=400)
+
+        # Hapus Profile dulu (opsional, tergantung setting on_delete di models)
+        if hasattr(target_user, 'profile'):
+            target_user.profile.delete()
+            
+        target_user.delete()
+
+        return JsonResponse({
+            "status": True,
+            "message": f"User '{username}' has been deleted successfully."
+        }, status=200)
+
+    except User.DoesNotExist:
+        return JsonResponse({
+            "status": False,
+            "message": "User not found."
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            "status": False,
+            "message": str(e)
+        }, status=500)

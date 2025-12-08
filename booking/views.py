@@ -888,7 +888,6 @@ def admin_api_fields_list(request):
     data = [_serialize_field(f, request) for f in fields]
     return JsonResponse({"status": "success", "data": data})
 
-
 @login_required
 def admin_api_field_create(request):
     if not _is_admin(request.user):

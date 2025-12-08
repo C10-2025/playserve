@@ -888,6 +888,7 @@ def admin_api_fields_list(request):
     data = [_serialize_field(f, request) for f in fields]
     return JsonResponse({"status": "success", "data": data})
 
+@csrf_exempt
 @login_required
 def admin_api_field_create(request):
     if not _is_admin(request.user):
@@ -895,7 +896,14 @@ def admin_api_field_create(request):
     if request.method != "POST":
         return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
 
-    form = FieldForm(data=request.POST, files=request.FILES, user=request.user)
+    data = request.POST.copy()
+    data.setdefault('number_of_courts', '1')  # Default to 1 court
+    data.setdefault('has_lights', 'False')    # Default to no lights
+    data.setdefault('has_backboard', 'False') # Default to no backboard
+    data.setdefault('description', '')        # Default to empty description
+
+    form = FieldForm(data=data, files=request.FILES, user=request.user)
+
     if form.is_valid():
         field = form.save(commit=False)
         field.created_by = request.user
@@ -903,7 +911,7 @@ def admin_api_field_create(request):
         return JsonResponse({"status": "success", "data": _serialize_field(field, request)})
     return JsonResponse({"status": "error", "errors": form.errors}, status=400)
 
-
+@csrf_exempt
 @login_required
 def admin_api_field_update(request, pk):
     if not _is_admin(request.user):
@@ -912,13 +920,23 @@ def admin_api_field_update(request, pk):
         return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
 
     field = get_object_or_404(PlayingField, pk=pk, created_by=request.user)
-    form = FieldForm(data=request.POST, files=request.FILES, instance=field, user=request.user)
+
+    # Prepare data with defaults for missing fields that Flutter doesn't send
+    data = request.POST.copy()
+    data.setdefault('number_of_courts', str(field.number_of_courts or 1))
+    data.setdefault('has_lights', str(field.has_lights).lower())
+    data.setdefault('has_backboard', str(field.has_backboard).lower())
+    data.setdefault('description', field.description or '')
+    # latitude, longitude, and court_image can remain empty as they're nullable
+
+    form = FieldForm(data=data, files=request.FILES, instance=field, user=request.user)
+
     if form.is_valid():
         field = form.save()
         return JsonResponse({"status": "success", "data": _serialize_field(field, request)})
     return JsonResponse({"status": "error", "errors": form.errors}, status=400)
 
-
+@csrf_exempt
 @login_required
 def admin_api_field_delete(request, pk):
     if not _is_admin(request.user):
@@ -956,7 +974,7 @@ def admin_api_booking_detail(request, pk):
     )
     return JsonResponse({"status": "success", "data": _serialize_booking(booking, request)})
 
-
+@csrf_exempt
 @login_required
 def admin_api_verify_payment(request, pk):
     if not _is_admin(request.user):

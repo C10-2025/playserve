@@ -883,7 +883,8 @@ def api_upload_payment_proof(request, pk):
 def admin_api_fields_list(request):
     if not _is_admin(request.user):
         return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
-    fields = PlayingField.objects.filter(created_by=request.user)
+    # Admin can manage ALL courts (consistent with web interface)
+    fields = PlayingField.objects.all().order_by('-created_at')
     data = [_serialize_field(f, request) for f in fields]
     return JsonResponse({"status": "success", "data": data})
 
@@ -937,10 +938,10 @@ def admin_api_field_delete(request, pk):
 def admin_api_pending_bookings(request):
     if not _is_admin(request.user):
         return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+    # Admin can manage ALL pending bookings (consistent with web interface)
     bookings = Booking.objects.filter(
-        field__created_by=request.user,
         status='PENDING_PAYMENT'
-    ).select_related('field', 'user')
+    ).select_related('field', 'user').order_by('-created_at')
     data = [_serialize_booking(b, request) for b in bookings]
     return JsonResponse({"status": "success", "data": data})
 
@@ -949,10 +950,10 @@ def admin_api_pending_bookings(request):
 def admin_api_booking_detail(request, pk):
     if not _is_admin(request.user):
         return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+    # Admin can view ANY booking detail (consistent with web interface)
     booking = get_object_or_404(
         Booking.objects.select_related('field', 'user'),
-        pk=pk,
-        field__created_by=request.user
+        pk=pk
     )
     return JsonResponse({"status": "success", "data": _serialize_booking(booking, request)})
 
@@ -964,10 +965,10 @@ def admin_api_verify_payment(request, pk):
     if request.method != "POST":
         return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
 
+    # Admin can verify ANY booking (consistent with web interface)
     booking = get_object_or_404(
         Booking.objects.select_related('field', 'user'),
-        pk=pk,
-        field__created_by=request.user
+        pk=pk
     )
 
     try:

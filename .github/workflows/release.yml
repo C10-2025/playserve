@@ -1,40 +1,30 @@
+# This is a basic workflow to help you get started with Actions
 name: Release
 
+# Controls when the workflow will run
 on:
+  # Triggers the workflow on push events but only for the main branch
   push:
-    branches: [ master ]  # ganti ke 'main' atau tambahkan 'main' bila repo pakai main
+    branches: [master]
 
+# Permissions needed for creating releases
 permissions:
   contents: write
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # This workflow contains a single job called "Build and Release APK"
   releases:
     name: Build and Release APK
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Find Flutter project directory (where pubspec.yaml is)
-        id: find
-        run: |
-          echo "Looking for pubspec.yaml in repo..."
-          # cari file pubspec.yaml dalam daftar file git
-          file_path=$(git ls-files | grep -m 1 -E '(^|/)pubspec.yaml$' || true)
-          if [ -z "$file_path" ]; then
-            echo "No pubspec.yaml found in repo. Exiting."
-            exit 1
-          fi
-          project_dir=$(dirname "$file_path")
-          echo "Found pubspec.yaml at: $file_path"
-          echo "project_dir=$project_dir" >> $GITHUB_OUTPUT
-
-      - name: Show found project dir
-        run: |
-          echo "Project dir: ${{ steps.find.outputs.project_dir }}"
-          ls -la ${{ steps.find.outputs.project_dir }}
+      - name: Get version from pubspec.yaml
+        id: version
+        run: echo "::set-output name=version::$(grep "version:" pubspec.yaml | cut -c10-)"
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -47,41 +37,25 @@ jobs:
         with:
           channel: "stable"
 
-      - name: Get version from pubspec.yaml
-        id: version
-        run: |
-          pd="${{ steps.find.outputs.project_dir }}"
-          ver=$(grep '^version:' "$pd/pubspec.yaml" | awk '{print $2}' || true)
-          if [ -z "$ver" ]; then
-            echo "version=undefined" >> $GITHUB_OUTPUT
-          else
-            echo "version=$ver" >> $GITHUB_OUTPUT
-          fi
-
       - name: Get packages
-        working-directory: ${{ steps.find.outputs.project_dir }}
         run: flutter pub get
 
       - name: Build APK
-        working-directory: ${{ steps.find.outputs.project_dir }}
         run: flutter build apk --split-per-abi
 
       - name: Get current date
         id: date
-        run: |
-          echo "date=$(TZ='Asia/Jakarta' date +'%A %d-%m-%Y %T WIB')" >> $GITHUB_OUTPUT
+        run: echo "::set-output name=date::$(TZ='Asia/Jakarta' date +'%A %d-%m-%Y %T WIB')"
 
       - name: Generate unique tag
         id: tag
-        run: |
-          ts=$(date +'%Y%m%d%H%M%S')
-          echo "tag=v${{ steps.version.outputs.version }}-$ts" >> $GITHUB_OUTPUT
+        run: echo "::set-output name=tag::v${{ steps.version.outputs.version }}-$(date +'%Y%m%d%H%M%S')"
 
       - name: Release APK
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: false
-          artifacts: "${{ steps.find.outputs.project_dir }}/build/app/outputs/flutter-apk/*.apk"
+          artifacts: "build/app/outputs/flutter-apk/*.apk"
           body: "Published at ${{ steps.date.outputs.date }}"
           name: "v${{ steps.version.outputs.version }} - ${{ steps.date.outputs.date }}"
           token: ${{ secrets.GITHUB_TOKEN }}

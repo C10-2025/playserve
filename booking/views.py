@@ -633,10 +633,69 @@ def admin_verify_payment(request, booking_id):
 # === JSON API endpoints ===
 
 def api_fields(request):
-    """List all active fields for mobile."""
-    fields = PlayingField.objects.filter(is_active=True)
-    data = [_serialize_field(field, request) for field in fields]
-    return JsonResponse({"status": "success", "data": data}, safe=False)
+    """List active fields for mobile with filtering and pagination support."""
+    from django.core.paginator import Paginator
+
+    queryset = PlayingField.objects.filter(is_active=True)
+
+    # Search
+    search = request.GET.get('search')
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search) |
+            Q(address__icontains=search) |
+            Q(city__icontains=search)
+        )
+
+    # City filter
+    city = request.GET.get('city')
+    if city:
+        queryset = queryset.filter(city=city)
+
+    # Price range filter
+    price_min = request.GET.get('price_min')
+    price_max = request.GET.get('price_max')
+    if price_min:
+        queryset = queryset.filter(price_per_hour__gte=price_min)
+    if price_max:
+        queryset = queryset.filter(price_per_hour__lte=price_max)
+
+    # Features filter
+    if request.GET.get('has_lights') == 'true':
+        queryset = queryset.filter(has_lights=True)
+    if request.GET.get('has_backboard') == 'true':
+        queryset = queryset.filter(has_backboard=True)
+
+    # Sorting
+    sort = request.GET.get('sort', 'default')
+    if sort == 'price_low':
+        queryset = queryset.order_by('price_per_hour')
+    elif sort == 'name':
+        queryset = queryset.order_by('name')
+    else:
+        queryset = queryset.order_by('-price_per_hour')
+
+    # Pagination
+    page_number = int(request.GET.get('page', 1))
+    page_size = int(request.GET.get('page_size', 20))
+
+    paginator = Paginator(queryset, page_size)
+    page_obj = paginator.get_page(page_number)
+
+    data = [_serialize_field(field, request) for field in page_obj]
+
+    return JsonResponse({
+        "status": "success",
+        "data": data,
+        "pagination": {
+            "page": page_obj.number,
+            "page_size": page_size,
+            "total_pages": paginator.num_pages,
+            "total_items": paginator.count,
+            "has_next": page_obj.has_next(),
+            "has_previous": page_obj.has_previous(),
+        }
+    }, safe=False)
 
 
 def api_availability(request):

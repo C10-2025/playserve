@@ -279,7 +279,7 @@ def finish_match_session(request):
     
     try:
         data = json.loads(request.body)
-        session_id = data.get('session_id')
+        session_id = int(data.get('session_id'))
         action = data.get('action') 
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON data.'}, status=400)
@@ -317,8 +317,16 @@ def finish_match_session(request):
                 
             elif action == 'LOSE':
                 session.result = 'P2_WIN' if is_player1 else 'P1_WIN'
-                message = ''
+
+                winner = session.player2 if is_player1 else session.player1
                 
+                Profile.objects.filter(user=winner).update(jumlah_kemenangan=F('jumlah_kemenangan') + 1)
+
+                if winner == user:
+                    request.user.profile.refresh_from_db()
+
+                message = ''
+
             elif action == 'CANCEL':
                 session.result = 'CANCELLED'
                 message = ''

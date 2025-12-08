@@ -20,4 +20,14 @@ urlpatterns = [
     path('api/community/<int:community_id>/', views.community_detail_json, name='community_detail_json'),
     path('api/community/<int:community_id>/posts/', views.create_post_json, name='create_post_json'),
     path('api/posts/<int:post_id>/reply/', views.create_reply_json, name='create_reply_json'),
+    path(
+        "api/posts/<int:post_id>/delete/",
+        views.delete_post_api,
+        name="delete_post_api",
+    ),
+    path(
+        "api/replies/<int:reply_id>/delete/",
+        views.delete_reply_api,
+        name="delete_reply_api",
+    ),
 ]

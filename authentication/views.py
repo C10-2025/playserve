@@ -4,6 +4,9 @@ from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from profil.models import Profile
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from profil.models import Profile  
 import json
 
 @csrf_exempt
@@ -198,19 +201,29 @@ def edit_profile(request):
     except Exception as e:
         return JsonResponse({"status": False, "message": str(e)}, status=500)
 
+
+
 def get_user(request):
     user = request.user
     profile = getattr(user, 'profile', None)
 
+    # kalau admin, paksa rank "ADMIN"
+    if user.is_superuser or user.is_staff:
+        rank = "ADMIN"
+    else:
+        rank = getattr(profile, 'rank', 'BRONZE')
+
     data = {
         "status": True,
         "username": user.username,
-        "rank": getattr(profile, 'rank', 'BRONZE'),
+        "rank": rank,
         "avatar": getattr(profile, 'avatar', 'image/avatar1.svg'),
         "instagram": getattr(profile, 'instagram', ''),
         "lokasi": getattr(profile, 'lokasi', 'Jakarta'),
     }
     return JsonResponse(data)
+
+
 
 @csrf_exempt
 def delete_profile(request):

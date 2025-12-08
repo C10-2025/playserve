@@ -31,6 +31,26 @@ def is_admin(user):
     return user.is_staff or user.is_superuser
 
 @login_required
+def get_user(request):
+    profile = getattr(request.user, "profile", None)
+
+    data = {
+        "status": True,
+        "username": request.user.username,
+        "rank": getattr(profile, "rank", None),
+        "avatar": getattr(profile, "avatar", None),
+        "instagram": getattr(profile, "instagram", None),
+        "lokasi": getattr(profile, "lokasi", None),
+
+        # 🔥 TAMBAHAN PENTING:
+        "is_superuser": request.user.is_superuser,
+        "is_staff": request.user.is_staff,
+        "is_admin": request.user.is_superuser or request.user.is_staff,
+    }
+
+    return JsonResponse(data)
+
+@login_required
 def discover_communities(request):
     query = request.GET.get('q', '')
 
@@ -67,7 +87,6 @@ def discover_communities_json(request):
     else:
         communities = Community.objects.all()
 
-    # Set ID komunitas yang sudah di-join user
     if request.user.is_authenticated:
         joined_ids = set(
             request.user.joined_communities.values_list('id', flat=True)
@@ -87,11 +106,14 @@ def discover_communities_json(request):
             "members_count": c.members.count(),
             "is_joined": is_joined,
             "is_creator": is_creator,
-            # Flutter bisa pakai ini buat nentuin boleh klik detail atau nggak
+            # ⬇⬇⬇ TAMBAHAN PENTING
+            "creator_username": c.creator.username if c.creator else "",
+            # ⬆⬆⬆
             "can_open": is_joined or is_creator,
         })
 
     return JsonResponse(data, safe=False, status=200)
+
 
 
 @login_required
@@ -138,102 +160,276 @@ def join_community(request, community_id):
         'members_count': community.members.count(),
     })
 
-
-
 @login_required
 @user_passes_test(is_admin)
+@csrf_exempt   # biar aman untuk Flutter + CookieRequest (sudah login)
 def create_community(request):
-    if request.method == 'POST':
+    # bedain: panggilan dari Flutter (JSON) vs dari HTML/JS (FormData)
+    is_json = request.headers.get("Content-Type", "").startswith("application/json")
+    is_ajax = is_json or request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+    if request.method != 'POST':
+        # kalau dari Flutter/JS, balikin JSON error
+        if is_ajax:
+            return JsonResponse(
+                {"status": "error", "message": "Method not allowed."},
+                status=405
+            )
+        # fallback ke template biasa
+        return render(request, 'create_community.html', {
+            'profile': getattr(request.user, 'profile', None)
+        })
+
+    # --- ambil data name & description ---
+    if is_json:
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            payload = {}
+        name = (payload.get('name') or '').strip()
+        description = (payload.get('description') or '').strip()
+    else:
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
-        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
-        if not name:
-            msg = 'Name is required.'
-            if is_ajax:
-                return JsonResponse({'status': 'error', 'toast_type': 'error', 'message': msg}, status=400)
-            messages.error(request, msg)
-            return redirect('discover_communities')
-
-        existing = Community.objects.filter(name__iexact=name).first()
-        if existing:
-            msg = f'Community with name "{name}" already exists. Please use a different name.'
-            if is_ajax:
-                return JsonResponse(
-                    {'status': 'error', 'toast_type': 'error', 'message': msg, 'code': 'duplicate_name'},
-                    status=409
-                )
-            messages.error(request, msg)
-            return redirect('discover_communities')
-
-        try:
-            community = Community.objects.create(
-                name=name,
-                description=description,
-                creator=request.user
+    # --- validasi name wajib ---
+    if not name:
+        msg = 'Name is required.'
+        if is_ajax:
+            # ini yang dibaca Flutter
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'message': msg,
+                    'code': 'name_required',
+                },
+                status=400
             )
-            msg = f'Community "{name}" created successfully.'
-            if is_ajax:
-                return JsonResponse({
+        messages.error(request, msg)
+        return redirect('discover_communities')
+
+    # --- cek duplicate (A dan a dianggap sama) ---
+    existing = Community.objects.filter(name__iexact=name).first()
+    if existing:
+        msg = f'Community with name "{name}" already exists. Please use a different name.'
+
+        if is_json:
+            # khusus Flutter → **status 200** biar gampang dibaca CookieRequest
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'message': 'Community name already exists. Please use a different name.',
+                    'code': 'duplicate_name',
+                },
+                status=200
+            )
+
+        if is_ajax:
+            # dipakai JS di template (tetap 409 biar !resp.ok)
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'toast_type': 'error',
+                    'message': msg,
+                    'code': 'duplicate_name',
+                },
+                status=409
+            )
+
+        messages.error(request, msg)
+        return redirect('discover_communities')
+
+    # --- create community ---
+    try:
+        community = Community.objects.create(
+            name=name,
+            description=description,
+            creator=request.user
+        )
+        msg = f'Community "{community.name}" created successfully.'
+
+        if is_ajax:
+            # Flutter & JS akan dapat JSON ini
+            return JsonResponse(
+                {
                     'status': 'success',
                     'toast_type': 'success',
                     'message': msg,
-                    'redirect_url': reverse('discover_communities')
-                }, status=200)
+                    'code': 'created',
+                    'redirect_url': reverse('discover_communities'),
+                },
+                status=200
+            )
 
-            messages.success(request, msg)
-            return redirect('discover_communities')
+        messages.success(request, msg)
+        return redirect('discover_communities')
 
-        except Exception:
-            generic = 'Something went wrong. Please try again.'
-            if is_ajax:
-                return JsonResponse({'status': 'error', 'toast_type': 'error', 'message': generic}, status=500)
-            messages.error(request, generic)
-            return redirect('discover_communities')
+    except Exception:
+        generic = 'Something went wrong. Please try again.'
+        if is_ajax:
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'toast_type': 'error',
+                    'message': generic,
+                },
+                status=500
+            )
+        messages.error(request, generic)
+        return redirect('discover_communities')
 
-    return render(request, 'create_community.html', {
-        'profile': getattr(request.user, 'profile', None)
-    })
 
 
 @login_required
 @user_passes_test(is_admin)
+@csrf_exempt
 def update_community(request, community_id):
     community = get_object_or_404(Community, id=community_id)
 
     if request.user != community.creator:
-        messages.error(request, "You can only edit your own communities.")
+        msg = "You can only edit your own communities."
+        is_json = request.headers.get("Content-Type", "").startswith("application/json")
+        is_ajax = is_json or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+        if is_ajax:
+            return JsonResponse(
+                {'status': 'error', 'message': msg},
+                status=403
+            )
+        messages.error(request, msg)
         return redirect("discover_communities")
 
-    if request.method == "POST":
+    is_json = request.headers.get("Content-Type", "").startswith("application/json")
+    is_ajax = is_json or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+    if request.method != "POST":
+        if is_ajax:
+            return JsonResponse(
+                {"status": "error", "message": "Method not allowed."},
+                status=405
+            )
+        return redirect("discover_communities")
+
+    # --- ambil data ---
+    if is_json:
+        try:
+            payload = json.loads(request.body.decode('utf-8'))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            payload = {}
+        name = (payload.get("name") or "").strip()
+        description = (payload.get("description") or "").strip()
+    else:
         name = request.POST.get("name", "").strip()
-        description = request.POST.get("description", "").strip()
+        description = (request.POST.get("description") or "").strip()
 
-        if not name or not description:
-            messages.error(request, "Both name and description are required.")
-        else:
-            community.name = name
-            community.description = description
-            community.save()
-            messages.success(request, f"Community '{community.name}' updated successfully.")
+    # name wajib, description boleh kosong
+    if not name:
+        msg = "Name is required."
+        if is_ajax:
+            return JsonResponse(
+                {"status": "error", "message": msg, "code": "name_required"},
+                status=400
+            )
+        messages.error(request, msg)
         return redirect("discover_communities")
 
+    # cek duplicate name (case-insensitive, exclude dirinya sendiri)
+    duplicate = Community.objects.filter(name__iexact=name).exclude(id=community.id).first()
+    if duplicate:
+        msg = f'Community with name "{name}" already exists. Please use a different name.'
+        if is_json:
+            # khusus Flutter, status 200 tapi kirim code
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Community name already exists. Please use a different name.",
+                    "code": "duplicate_name",
+                },
+                status=200
+            )
+        if is_ajax:
+            # kalau nanti kamu bikin AJAX di web
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": msg,
+                    "code": "duplicate_name",
+                },
+                status=409
+            )
+        messages.error(request, msg)
+        return redirect("discover_communities")
+
+    # --- simpan perubahan ---
+    community.name = name
+    community.description = description  # boleh kosong ("")
+    community.save()
+
+    success_msg = f"Community '{community.name}' updated successfully."
+
+    if is_ajax:
+        return JsonResponse(
+            {
+                "status": "success",
+                "message": success_msg,
+                "code": "updated",
+            },
+            status=200
+        )
+
+    messages.success(request, success_msg)
     return redirect("discover_communities")
+
 
 
 
 @login_required
 @user_passes_test(is_admin)
+@csrf_exempt
 def delete_community(request, community_id):
     community = get_object_or_404(Community, id=community_id)
 
     if request.user != community.creator:
-        messages.error(request, "You can only delete communities you created.")
+        msg = "You can only delete communities you created."
+        is_json = request.headers.get("Content-Type", "").startswith("application/json")
+        is_ajax = is_json or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+        if is_ajax:
+            return JsonResponse({"status": "error", "message": msg}, status=403)
+
+        messages.error(request, msg)
         return redirect("discover_communities")
 
+    if request.method != "POST":
+        is_json = request.headers.get("Content-Type", "").startswith("application/json")
+        is_ajax = is_json or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+        if is_ajax:
+            return JsonResponse(
+                {"status": "error", "message": "Method not allowed."},
+                status=405
+            )
+        return redirect("discover_communities")
+
+    deleted_name = community.name
     community.delete()
-    messages.success(request, "Community deleted successfully.")
+    msg = f'Community "{deleted_name}" deleted successfully.'
+
+    is_json = request.headers.get("Content-Type", "").startswith("application/json")
+    is_ajax = is_json or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+    if is_ajax:
+        # Flutter OR AJAX fetch response
+        return JsonResponse(
+            {"status": "success", "message": msg},
+            status=200
+        )
+
+    # Browser HTML fallback (Redirect + Django Messages)
+    messages.success(request, msg)
     return redirect("discover_communities")
+
+
 
 @login_required
 def community_detail(request, community_id):
@@ -266,13 +462,23 @@ def community_detail(request, community_id):
 def community_detail_json(request, community_id):
     community = get_object_or_404(Community, id=community_id)
 
-    # sama seperti HTML: wajib member
-    if request.user not in community.members.all():
+    # 🔹 1. Auto-join kalau dia creator tapi belum jadi member (sama kayak HTML view)
+    if request.user == community.creator and request.user not in community.members.all():
+        community.members.add(request.user)
+
+    # 🔹 2. Hitung role
+    is_admin = request.user.is_superuser or request.user.is_staff
+    is_member = community.members.filter(pk=request.user.pk).exists()
+    is_creator = (request.user == community.creator)
+
+    # 🔹 3. Permission: boleh kalau member / creator / admin
+    if not (is_member or is_creator or is_admin):
         return JsonResponse(
             {"error": "You must join this community to see its posts."},
             status=403
         )
 
+    # 🔹 4. Ambil posts
     posts_qs = community.posts.all().prefetch_related(
         'author', 'replies', 'replies__author'
     ).order_by('-created_at')
@@ -296,16 +502,56 @@ def community_detail_json(request, community_id):
             ],
         })
 
+    # 🔹 5. Return JSON yang lebih lengkap (sekalian kirim flag ke Flutter)
     data = {
         "id": community.id,
         "name": community.name,
         "description": community.description or "",
         "members_count": community.members.count(),
-        "is_creator": (request.user == community.creator),
-        "is_admin": request.user.is_staff or request.user.is_superuser,
+        "is_creator": is_creator,
+        "is_admin": is_admin,
+        "is_joined": is_member,
         "posts": posts_data,
     }
     return JsonResponse(data, status=200)
+
+@csrf_exempt
+@login_required
+@require_POST
+def delete_post_api(request, post_id):
+    # hanya admin / staff yang boleh delete, sama kayak template
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse(
+            {"error": "Forbidden"}, status=403
+        )
+
+    post = get_object_or_404(Post, pk=post_id)
+    post.delete()
+    return JsonResponse(
+        {
+            "status": "success",
+            "message": "Post deleted."
+        }
+    )
+
+@csrf_exempt
+@login_required
+@require_POST
+def delete_reply_api(request, reply_id):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse(
+            {"error": "Forbidden"}, status=403
+        )
+
+    reply = get_object_or_404(Reply, pk=reply_id)
+    reply.delete()
+    return JsonResponse(
+        {
+            "status": "success",
+            "message": "Reply deleted."
+        }
+    )
+
 @csrf_exempt
 @login_required
 @require_POST

@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master ]  # ganti ke 'main' atau tambahkan 'main' bila repo pakai main
 
 permissions:
   contents: write
@@ -17,33 +17,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify working directory and files (debug)
+      - name: Find Flutter project directory (where pubspec.yaml is)
+        id: find
         run: |
-          echo "Runner working directory:"
-          pwd
-          echo "List files in repo root:"
-          ls -la
-          echo "Check pubspec.yaml existence:"
-          if [ -f pubspec.yaml ]; then
-            echo "FOUND pubspec.yaml at repo root"
-          else
-            echo "pubspec.yaml NOT FOUND at repo root"
-            echo "Contents of current directory:"
-            ls -la
+          echo "Looking for pubspec.yaml in repo..."
+          # cari file pubspec.yaml dalam daftar file git
+          file_path=$(git ls-files | grep -m 1 -E '(^|/)pubspec.yaml$' || true)
+          if [ -z "$file_path" ]; then
+            echo "No pubspec.yaml found in repo. Exiting."
             exit 1
           fi
+          project_dir=$(dirname "$file_path")
+          echo "Found pubspec.yaml at: $file_path"
+          echo "project_dir=$project_dir" >> $GITHUB_OUTPUT
 
-      - name: Get version from pubspec.yaml
-        id: version
+      - name: Show found project dir
         run: |
-          # ambil baris 'version:' lalu ambil nilai setelah 'version: '
-          ver=$(grep '^version:' pubspec.yaml | awk '{print $2}' || true)
-          if [ -z "$ver" ]; then
-            echo "Could not find version in pubspec.yaml"
-            echo "version=undefined" >> $GITHUB_OUTPUT
-          else
-            echo "version=$ver" >> $GITHUB_OUTPUT
-          fi
+          echo "Project dir: ${{ steps.find.outputs.project_dir }}"
+          ls -la ${{ steps.find.outputs.project_dir }}
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -56,10 +47,23 @@ jobs:
         with:
           channel: "stable"
 
+      - name: Get version from pubspec.yaml
+        id: version
+        run: |
+          pd="${{ steps.find.outputs.project_dir }}"
+          ver=$(grep '^version:' "$pd/pubspec.yaml" | awk '{print $2}' || true)
+          if [ -z "$ver" ]; then
+            echo "version=undefined" >> $GITHUB_OUTPUT
+          else
+            echo "version=$ver" >> $GITHUB_OUTPUT
+          fi
+
       - name: Get packages
+        working-directory: ${{ steps.find.outputs.project_dir }}
         run: flutter pub get
 
       - name: Build APK
+        working-directory: ${{ steps.find.outputs.project_dir }}
         run: flutter build apk --split-per-abi
 
       - name: Get current date
@@ -77,7 +81,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: false
-          artifacts: "build/app/outputs/flutter-apk/*.apk"
+          artifacts: "${{ steps.find.outputs.project_dir }}/build/app/outputs/flutter-apk/*.apk"
           body: "Published at ${{ steps.date.outputs.date }}"
           name: "v${{ steps.version.outputs.version }} - ${{ steps.date.outputs.date }}"
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -125,7 +125,8 @@
 
 
                   {% if request.user.is_staff or request.user.is_superuser %}
-                  <form action="{% url 'delete_reply' reply.id %}" method="POST" class="mt-2">
+                  <form action="{% url 'delete_reply' reply.id %}" method="POST" class="mt-2 flex justify-end">
+
                     {% csrf_token %}
                     <button type="submit"
                             class="px-2.5 py-1 rounded-md bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition-all js-confirm-delete"

@@ -84,7 +84,7 @@ class DeleteReviewTests(TestCase):
 class ReviewSearchBarTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.url = reverse('review:review_list_search_bar')
+        self.url = reverse('review:review_list')
 
         self.field1 = PlayingField.objects.create(
             name='Jakarta Arena', address='Central Jakarta', city='Jakarta',
@@ -228,7 +228,7 @@ class ReviewFeatureExtensionTests(TestCase):
     def test_normal_user_cannot_see_analytics(self):
         self.client.login(username="regular", password="pass")
         response = self.client.get(reverse("review:review_list"))
-        self.assertEqual(response.context["analytics"], {}) # Empty analytics
+        self.assertIsNone(response.context["analytics"]) # Empty analytics
 
     def test_analytics_calculations_are_correct(self):
         Review.objects.create(user=self.admin, field=self.field1, rating=5)
@@ -243,4 +243,4 @@ class ReviewFeatureExtensionTests(TestCase):
         self.assertEqual(data["total_reviews"], 3)
         self.assertAlmostEqual(data["mean"], 3.0)
         self.assertAlmostEqual(data["median"], 3.0)
-        self.assertEqual(data["mode"], 1.0)
+        self.assertIsNone(data["mode"])

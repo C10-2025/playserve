@@ -5,16 +5,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.html import strip_tags
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
-from django.db.models import Q, Avg, Count, Value
+from django.db.models import Q, Avg, Count, Value, FloatField, Prefetch
 from django.db.models.functions import Coalesce
 from django.core import serializers
 from django.http import HttpResponse
 import requests, json
-
+from statistics import mean, median, mode,multimode, StatisticsError
 from review.models import Review
 from booking.models import PlayingField
-
-import statistics
 
 def add_review(request):
     if request.method == 'POST':
@@ -80,84 +78,74 @@ def add_review(request):
 
 # Also handles sorting logic and admin analytics
 def review_list(request):
-    """
-    Displays playing fields with review previews. Supports sorting by average rating
-    (highest->lowest or lowest->highest). Also computes admin analytics (mean, median, mode, total).
-    """
+    search = request.GET.get("search", "").strip()
+    sort = request.GET.get("sort", "none")
 
-    # Base queryset: only active fields (keep your previous behavior)
+    # Base queryset
     fields = PlayingField.objects.all()
+    fields = fields.prefetch_related(
+        Prefetch(
+            "review_set",
+            queryset=Review.objects.order_by("-id")
+        )
+    ) # order
 
-    # Annotate with average rating and review count.
-    # Coalesce ensures avg_rating is 0 if there are no reviews (Q2: treat as 0).
+    # SEARCH (name OR city)
+    if search:
+        fields = fields.filter(
+            Q(name__icontains=search) |
+            Q(city__icontains=search) |
+            Q(address__icontains=search)
+        )
+
+    # ALWAYS annotate (CRITICAL)
     fields = fields.annotate(
-        avg_rating=Coalesce(Avg('review__rating'), Value(0.0)),
-        review_count=Coalesce(Count('review'), Value(0))
+        avg_rating=Coalesce(
+            Avg("review__rating"),
+            Value(0.0),
+            output_field=FloatField()
+        ),
+        review_count=Count("review")
     )
 
-    # Sorting: read from GET param 'sort'
-    # supported values: 'avg_desc' (highest to lowest), 'avg_asc' (lowest to highest)
-    sort = request.GET.get('sort', 'none')
-    if sort == 'avg_desc':
-        fields = fields.order_by('-avg_rating', '-review_count', 'name')
-    elif sort == 'avg_asc':
-        fields = fields.order_by('avg_rating', '-review_count', 'name')
-    else:
-        # default ordering (you can tweak)
-        fields = fields.order_by('-id')
+    # SORTING
+    if sort == "avg_desc":
+        fields = fields.order_by("-avg_rating", "-review_count")
+    elif sort == "avg_asc":
+        fields = fields.order_by("avg_rating", "-review_count")
 
-    # Admin analytics: compute across ALL reviews (Q3)
-    analytics = {}
-    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
-        ratings_qs = Review.objects.values_list('rating', flat=True)
-        ratings = list(ratings_qs)
+    # ADMIN ANALYTICS
+    analytics = None
+    if request.user.is_authenticated and (
+        request.user.is_staff or request.user.is_superuser
+    ):
+        ratings = list(
+            Review.objects.values_list("rating", flat=True)
+        )
 
-        total_reviews = len(ratings)
-        mean = None
-        median = None
-        mode = None
+        if ratings:
+            modes = multimode(ratings)
 
-        if total_reviews > 0:
-            # Mean
-            # Use Avg from DB for high precision, but fallback to python statistics.mean if needed
-            db_mean = Review.objects.aggregate(avg=Avg('rating'))['avg']
-            mean = float(db_mean) if db_mean is not None else statistics.mean(ratings)
+            analytics = {
+                "total_reviews": len(ratings),
+                "mean": mean(ratings),
+                "median": median(ratings),
+                # Only return mode if it is UNIQUE
+                "mode": modes[0] if len(modes) == 1 else None,
+            }
+        else:
+            analytics = {
+                "total_reviews": 0,
+                "mean": None,
+                "median": None,
+                "mode": None,
+            }
 
-            # Median
-            try:
-                median = float(statistics.median(ratings))
-            except Exception:
-                # fallback: compute manually
-                ratings_sorted = sorted(ratings)
-                n = len(ratings_sorted)
-                mid = n // 2
-                if n % 2 == 1:
-                    median = float(ratings_sorted[mid])
-                else:
-                    median = (ratings_sorted[mid - 1] + ratings_sorted[mid]) / 2.0
-
-            # Mode: use multimode and choose the smallest rating in case of tie
-            try:
-                modes = statistics.multimode(ratings)
-                mode = float(min(modes))
-            except Exception:
-                mode = None
-
-        analytics = {
-            'mean': mean,
-            'median': median,
-            'mode': mode,
-            'total_reviews': total_reviews
-        }
-
-    context = {
-        'fields': fields,
-        'sort': sort,
-        'analytics': analytics
-    }
-
-    return render(request, 'review_list.html', context)
-
+    return render(request, "review_list.html", {
+        "fields": fields,
+        "sort": sort,
+        "analytics": analytics,
+    })
 
 def view_comments(request, field_id):
     field = get_object_or_404(PlayingField, pk=field_id)
@@ -181,7 +169,8 @@ def view_comments(request, field_id):
     return redirect('review:review_list')
 
 
-# Admin
+
+## Admin
 def is_admin(user):
     return user.is_staff or user.is_superuser
 
@@ -208,19 +197,8 @@ def delete_review(request, review_id):
     }, status=400)
 
 
-# Search bar 
-def review_list_search_bar(request):
-    search_query = request.GET.get('search', '')
-    fields = PlayingField.objects.filter(is_active=True)
 
-    if search_query:
-        fields = fields.filter(
-            Q(name__icontains=search_query) | Q(city__icontains=search_query) | Q(address__icontains=search_query)
-        )
-
-    return render(request, 'review_list.html', {'fields': fields})
-
-# JSON helpers (for dev)
+## JSON helpers (for dev)
 def show_json(request):
     review_list = Review.objects.all()
     data = [
@@ -234,7 +212,9 @@ def show_json(request):
     ]
     return JsonResponse(data, safe=False)
 
-# Flutter views
+
+
+## Flutter views
 def proxy_image(request):
     image_url = request.GET.get('url')
     if not image_url:

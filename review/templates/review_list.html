@@ -232,8 +232,17 @@ body {
         </form>
 
         <!-- Search bar -->
-        <form method="get" action="{% url 'review:review_list_search_bar' %}" class="search-form" style="margin-left:8px;">
-          <input type="text" name="search" placeholder="Search by name or city..." value="{{ request.GET.search }}" class="search-input" />
+        <form method="get" action="{% url 'review:review_list' %}" class="search-form" style="margin-left:8px;">
+          <!-- Preserve sort when searching -->
+          <input type="hidden" name="sort" value="{{ sort }}">
+
+          <input
+            type="text"
+            name="search"
+            placeholder="Search by name or city..."
+            value="{{ request.GET.search }}"
+            class="search-input"
+          />
           <button type="submit" class="search-btn">🔍</button>
         </form>
       </div>
@@ -277,7 +286,7 @@ body {
                       {% for i in "12345" %}
                         {% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}
                       {% endfor %}
-                      — <strong>{{ c.user.username }}</strong>: {{ c.komentar|truncatechars:60 }}
+                      — <strong>{{ c.user.username }}</strong>{% if c.komentar %}: {{ c.komentar|truncatechars:60 }}{% endif %}
                     </li>
                   {% endfor %}
                 </ul>
@@ -307,21 +316,21 @@ body {
       <div class="stat-item">
         <div class="stat-label">Mean rating</div>
         <div class="stat-value">
-          {% if analytics.mean %}{{ analytics.mean|floatformat:2 }}{% else %}N/A{% endif %}
+          {% if analytics.mean is not None %}{{ analytics.mean|floatformat:2 }}{% else %}N/A{% endif %}
         </div>
       </div>
 
       <div class="stat-item">
         <div class="stat-label">Median rating</div>
         <div class="stat-value">
-          {% if analytics.median %}{{ analytics.median|floatformat:2 }}{% else %}N/A{% endif %}
+          {% if analytics.median is not None %}{{ analytics.median|floatformat:2 }}{% else %}N/A{% endif %}
         </div>
       </div>
 
       <div class="stat-item">
         <div class="stat-label">Mode rating</div>
         <div class="stat-value">
-          {% if analytics.mode %}{{ analytics.mode|floatformat:2 }}{% else %}N/A{% endif %}
+          {% if analytics.mode is not None %}{{ analytics.mode|floatformat:2 }}{% else %}N/A{% endif %}
         </div>
       </div>
     </div>

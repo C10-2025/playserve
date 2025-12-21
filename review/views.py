@@ -9,6 +9,7 @@ from django.db.models import Q, Avg, Count, Value, FloatField, Prefetch
 from django.db.models.functions import Coalesce
 from django.core import serializers
 from django.http import HttpResponse
+from django.template.loader import render_to_string
 import requests, json
 from statistics import mean, median, mode,multimode, StatisticsError
 from review.models import Review
@@ -77,20 +78,21 @@ def add_review(request):
     return redirect('review:review_list')
 
 # Also handles sorting logic and admin analytics
+from django.template.loader import render_to_string
+
 def review_list(request):
+    # Base queryset
     search = request.GET.get("search", "").strip()
     sort = request.GET.get("sort", "none")
 
-    # Base queryset
-    fields = PlayingField.objects.all()
-    fields = fields.prefetch_related(
+    fields = PlayingField.objects.all().prefetch_related(
         Prefetch(
             "review_set",
-            queryset=Review.objects.order_by("-id")
+            queryset=Review.objects.select_related("user").order_by("-id")
         )
     ) # latest first
 
-    # SEARCH (name OR city)
+    # SEARCH (name, city, or address)
     if search:
         fields = fields.filter(
             Q(name__icontains=search) |
@@ -108,7 +110,7 @@ def review_list(request):
         review_count=Count("review")
     )
 
-    # SORTING
+     # SORTING
     if sort == "avg_desc":
         fields = fields.order_by("-avg_rating", "-review_count")
     elif sort == "avg_asc":
@@ -116,21 +118,14 @@ def review_list(request):
 
     # ADMIN ANALYTICS
     analytics = None
-    if request.user.is_authenticated and (
-        request.user.is_staff or request.user.is_superuser
-    ):
-        ratings = list(
-            Review.objects.values_list("rating", flat=True)
-        )
-
+    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+        ratings = list(Review.objects.values_list("rating", flat=True))
         if ratings:
             modes = multimode(ratings)
-
             analytics = {
                 "total_reviews": len(ratings),
                 "mean": mean(ratings),
                 "median": median(ratings),
-                # Only return mode if it is UNIQUE
                 "mode": modes[0] if len(modes) == 1 else None,
             }
         else:
@@ -141,11 +136,19 @@ def review_list(request):
                 "mode": None,
             }
 
-    return render(request, "review_list.html", {
+    context = {
         "fields": fields,
         "sort": sort,
         "analytics": analytics,
-    })
+    }
+
+    # 🔥 AJAX: return partial only
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        html = render_to_string("partials/review_list_content.html", context, request=request)
+        return JsonResponse({"html": html})
+
+    return render(request, "review_list.html", context)
+
 
 def view_comments(request, field_id):
     field = get_object_or_404(PlayingField, pk=field_id)

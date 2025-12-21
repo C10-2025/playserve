@@ -94,16 +94,6 @@ body {
   width: 240px;
 }
 
-.search-btn {
-  background-color: #b0d235;
-  color: #1a2b4c;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
 /* === button css === */
 .add-review-btn {
   background: #b0d235;
@@ -127,6 +117,14 @@ body {
   overflow-y: auto;
   flex: 1;
   padding-right: 8px;
+}
+
+/* AJAX replacement container */
+#review-list-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* important for scroll stability */
 }
 
 .review-card {
@@ -221,13 +219,13 @@ body {
 
       <div class="left-controls">
         <!-- Sort select (left of search) -->
-        <form id="sort-form" method="get" style="display:inline;">
+        <form id="sort-form" style="display:inline;" onsubmit="return false;">
           {# Keep search value when sorting #}
           <input type="hidden" name="search" value="{{ request.GET.search }}">
-          <select name="sort" class="sort-select" onchange="document.getElementById('sort-form').submit()">
-            <option value="none" {% if sort == 'none' %}selected{% endif %}>Rating: Default</option>
-            <option value="avg_desc" {% if sort == 'avg_desc' %}selected{% endif %}>Rating: High → Low</option>
-            <option value="avg_asc" {% if sort == 'avg_asc' %}selected{% endif %}>Rating: Low → High</option>
+          <select name="sort" class="sort-select">
+            <option value="none">Rating: Default</option>
+            <option value="avg_desc">Rating: High → Low</option>
+            <option value="avg_asc">Rating: Low → High</option>
           </select>
         </form>
 
@@ -243,63 +241,17 @@ body {
             value="{{ request.GET.search }}"
             class="search-input"
           />
-          <button type="submit" class="search-btn">🔍</button>
         </form>
       </div>
     </div>
 
     <div id="add-review-container"></div>
 
-    <!--Review content-->
-    <div class="review-content">
-      {% for field in fields %}
-        <div class="review-card">
-          <div style="display:flex; gap:16px; align-items:center; justify-content:space-between;">
-            <div style="display:flex; gap:16px; align-items:center; flex:1;">
-              {% if field.image_url %}
-                <img src="{{ field.image_url }}" alt="thumb" style="width:80px;height:80px;border-radius:10px;object-fit:cover;">
-              {% endif %}
-              <div style="flex:1;">
-                <div style="font-weight:700; font-size:1.1rem;">{{ field.name }}</div>
-                <div style="color:#445; margin-top:6px;">
-                  {{ field.address }} • Rp {{ field.price_per_hour }}
-                </div>
-                <div style="margin-top:6px; color:#333;">
-                  Avg rating: <strong>{{ field.avg_rating|floatformat:1 }}</strong> • Reviews: <strong>{{ field.review_count }}</strong>
-                </div>
-              </div>
-            </div>
-
-            <div style="display:flex; gap:8px; align-items:center;">
-              <button class="add-review-btn" style="margin-right:8px" onclick="toggleReviewForm('{{ field.id }}')">Add Review</button>
-              <button class="add-review-btn" style="background:#fff;color:#1a2b4c;border:1px solid #d6e8c5" onclick="viewComments('{{ field.id }}')">View Comments</button>
-            </div>
-          </div>
-
-          <div class="review-komentar" style="margin-top:12px;">
-            Latest reviews preview:
-            {% with comments=field.review_set.all|slice:":2" %}
-              {% if comments %}
-                <ul style="margin:8px 0; padding-left:18px">
-                  {% for c in comments %}
-                    <li style="margin-bottom:6px">
-                      {% for i in "12345" %}
-                        {% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}
-                      {% endfor %}
-                      — <strong>{{ c.user.username }}</strong>{% if c.komentar %}: {{ c.komentar|truncatechars:60 }}{% endif %}
-                    </li>
-                  {% endfor %}
-                </ul>
-              {% else %}
-                <div style="color:#777; margin-top:8px">No reviews yet.</div>
-              {% endif %}
-            {% endwith %}
-          </div>
-        </div>
-      {% empty %}
-        <p class="no-reviews">No courts found.</p>
-      {% endfor %}
+    <!--Review content (partial in partials folder)-->
+    <div id="review-list-container">
+      {% include "partials/review_list_content.html" %}
     </div>
+
   </div>
 
   <!-- Right: Admin analytics sidebar -->
@@ -339,6 +291,38 @@ body {
 </div>
 
 <script>
+const searchInput = document.querySelector('.search-input');
+const sortSelect = document.querySelector('.sort-select');
+let debounceTimer = null;
+
+function fetchFilteredResults() {
+  const search = searchInput.value;
+  const sort = sortSelect.value;
+
+  const params = new URLSearchParams({
+    search: search,
+    sort: sort,
+  });
+
+  fetch(`?${params.toString()}`, {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('review-list-container').innerHTML = data.html;
+  });
+}
+
+// Live search (debounced)
+searchInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(fetchFilteredResults, 300);
+});
+
+// Live sort
+sortSelect.addEventListener('change', fetchFilteredResults);
+
+
 function toggleReviewForm(fieldId) {
   if (!fieldId) return;
   const container = document.getElementById('add-review-container');

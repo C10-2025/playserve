@@ -1,0 +1,81 @@
+<!--Review content partial-->
+<div id="review-list-container">
+  <div class="review-content">
+    {% for field in fields %}
+      <div class="review-card">
+        <div style="display:flex; gap:16px; align-items:center; justify-content:space-between;">
+          <div style="display:flex; gap:16px; align-items:center; flex:1;">
+            {% if field.image_url %}
+              <img
+                src="{{ field.image_url }}"
+                alt="thumb"
+                style="width:80px;height:80px;border-radius:10px;object-fit:cover;"
+              >
+            {% endif %}
+
+            <div style="flex:1;">
+              <div style="font-weight:700; font-size:1.1rem;">
+                {{ field.name }}
+              </div>
+
+              <div style="color:#445; margin-top:6px;">
+                {{ field.address }} • Rp {{ field.price_per_hour }}
+              </div>
+
+              <div style="margin-top:6px; color:#333;">
+                Avg rating:
+                <strong>{{ field.avg_rating|floatformat:1 }}</strong>
+                • Reviews:
+                <strong>{{ field.review_count }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button
+              class="add-review-btn"
+              style="margin-right:8px"
+              onclick="toggleReviewForm('{{ field.id }}')"
+            >
+              Add Review
+            </button>
+
+            <button
+              class="add-review-btn"
+              style="background:#fff;color:#1a2b4c;border:1px solid #d6e8c5"
+              onclick="viewComments('{{ field.id }}')"
+            >
+              View Comments
+            </button>
+          </div>
+        </div>
+
+        <div class="review-komentar" style="margin-top:12px;">
+          Latest reviews preview:
+
+          {% with comments=field.review_set.all|slice:":2" %}
+            {% if comments %}
+              <ul style="margin:8px 0; padding-left:18px;">
+                {% for c in comments %}
+                  <li style="margin-bottom:6px;">
+                    {% for i in "12345" %}
+                      {% if forloop.counter <= c.rating %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                    — <strong>{{ c.user.username }}</strong>
+                    {% if c.komentar %}: {{ c.komentar|truncatechars:60 }}{% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div style="color:#777; margin-top:8px;">
+                No reviews yet.
+              </div>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    {% empty %}
+      <p class="no-reviews">No courts found.</p>
+    {% endfor %}
+  </div>
+</div>

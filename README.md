@@ -35,7 +35,8 @@ _Website_ kami bernama PlayServe, sebuah _website_ yang dirancang khusus untuk p
 - Komunitas dibuat dan dihapus oleh admin.
 
 ### 5. Review (Marco Imanuel).
-- Sistem penilaian berupa bintang dan komentar.
+- Sistem ulasan berupa bintang dan komentar.
+- Panel analitik admin yang menampilkan metrik-metrik utama.
 
 ## 👤 Jenis Pengguna Website
 1. Admin, berperan untuk menambahkan lapangan agar dapat direservasi secara _online_. Selain itu, admin dapat menambahkan dan menghapus komunitas, menghapus penilaian yang tidak sesuai, serta menghapus akun _player_ yang melanggar aturan.

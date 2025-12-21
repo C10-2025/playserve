@@ -78,13 +78,17 @@ body {
 
                 <!-- Sort -->
                 <select id="sort" class="border border-gray-300 rounded-lg px-4 py-2 text-gray-900">
-                    <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Sort by Name</option>
+                    <option value="default" {% if not request.GET.sort or request.GET.sort == 'default' %}selected{% endif %}>Recommended</option>
                     <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
                     <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                    <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Name: A-Z</option>
                 </select>
             </div>
         </div>
     </div>
+
+    <!-- Result Count -->
+    <div id="result-count" class="mb-4 text-white text-center"></div>
 
     <!-- Courts Grid -->
     <div id="courts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -103,9 +107,13 @@ body {
                 {% endif %}
 
                 <!-- Features Badges -->
+
                 <div class="absolute top-2 right-2 space-y-1">
                     {% if field.has_lights %}
                     <span class="bg-yellow-400 text-xs px-2 py-1 rounded-full block">💡 Lights</span>
+                    {% endif %}
+                    {% if field.has_backboard %}
+                    <span class="bg-red-200 text-xs px-2 py-1 rounded-full block">🏓 Backboard</span>
                     {% endif %}
                 </div>
             </div>
@@ -172,8 +180,11 @@ function getCourtSurfaceDisplay(surface) {
     return choices[surface] || surface;
 }
 
-function renderFields(fields) {
+function renderFields(fields, totalItems) {
     const grid = document.getElementById('courts-grid');
+    const countDiv = document.getElementById('result-count');
+    countDiv.innerHTML = `${totalItems} courts found`;
+
     if (fields.length === 0) {
         grid.innerHTML = `
             <div class="col-span-full text-center py-12">
@@ -191,6 +202,7 @@ function renderFields(fields) {
             `<div class="flex items-center justify-center h-full"><span class="text-white text-6xl">🎾</span></div>`;
 
         const lightsBadge = field.has_lights ? `<span class="bg-yellow-400 text-xs px-2 py-1 rounded-full block">💡 Lights</span>` : '';
+        const backboardBadge = field.has_backboard ? `<span class="bg-rose-400 text-xs px-2 py-1 rounded-full block">🏓 Backboard</span>` : '';
 
         html += `
             <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition" style="color: #1a2b4c;">
@@ -198,6 +210,7 @@ function renderFields(fields) {
                     ${imageHtml}
                     <div class="absolute top-2 right-2 space-y-1">
                         ${lightsBadge}
+                        ${backboardBadge}
                     </div>
                 </div>
                 <div class="p-4">
@@ -234,7 +247,7 @@ function fetchAndRender() {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                renderFields(data.data);
+                renderFields(data.data, data.pagination.total_items);
             }
         })
         .catch(error => console.error('Error fetching fields:', error));

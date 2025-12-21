@@ -120,13 +120,15 @@ class FieldListView(ListView):
             queryset = queryset.filter(has_backboard=True)
 
         # Sorting
-        sort = self.request.GET.get('sort', '-price_per_hour')
+        sort = self.request.GET.get('sort', 'default')
         if sort == 'price_low':
             queryset = queryset.order_by('price_per_hour')
+        elif sort == 'price_high':
+            queryset = queryset.order_by('-price_per_hour')
         elif sort == 'name':
             queryset = queryset.order_by('name')
         else:
-            queryset = queryset.order_by('-price_per_hour')
+            queryset = queryset.order_by('-price_per_hour')  # default/recommended
 
 
         return queryset
@@ -670,10 +672,12 @@ def api_fields(request):
     sort = request.GET.get('sort', 'default')
     if sort == 'price_low':
         queryset = queryset.order_by('price_per_hour')
+    elif sort == 'price_high':
+        queryset = queryset.order_by('-price_per_hour')
     elif sort == 'name':
         queryset = queryset.order_by('name')
     else:
-        queryset = queryset.order_by('-price_per_hour')
+        queryset = queryset.order_by('-price_per_hour')  # default/recommended
 
     # Pagination
     page_number = int(request.GET.get('page', 1))

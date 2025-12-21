@@ -83,13 +83,6 @@ body {
                            class="bg-blue-600 text-white px-4 py-2 rounded text-center hover:bg-blue-700 transition">
                             View Court
                         </a>
-                        {% if booking.can_cancel %}
-                        <a href="{% url 'booking:cancel_booking' booking.id %}"
-                           class="bg-red-600 text-white px-4 py-2 rounded text-center hover:bg-red-700 transition"
-                           onclick="return confirm('Are you sure you want to cancel this booking?')">
-                            Cancel Booking
-                        </a>
-                        {% endif %}
                     </div>
                 </div>
             </div>

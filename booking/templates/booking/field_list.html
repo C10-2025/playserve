@@ -21,12 +21,12 @@ body {
 
     <!-- Search and Filters -->
     <div class="bg-white rounded-lg shadow p-6 mb-8" style="color: #1a2b4c;">
-        <form method="get" class="space-y-4">
+        <div class="space-y-4">
             <!-- Search Bar -->
             <div>
                 <input
                     type="text"
-                    name="search"
+                    id="search"
                     value="{{ search_query }}"
                     placeholder="Search courts by name or location..."
                     class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
@@ -36,7 +36,7 @@ body {
             <!-- Filters Row -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <!-- City Filter -->
-                <select name="city" class="border border-gray-300 rounded-lg px-4 py-2 text-gray-900">
+                <select id="city" class="border border-gray-300 rounded-lg px-4 py-2 text-gray-900">
                     <option value="">All Cities</option>
                     {% for value, label in cities %}
                     <option value="{{ value }}" {% if selected_city == value %}selected{% endif %}>
@@ -49,14 +49,16 @@ body {
                 <div class="flex items-center space-x-2">
                     <input
                         type="number"
-                        name="price_min"
+                        id="price_min"
+                        value="{{ request.GET.price_min }}"
                         placeholder="Min Price"
                         class="border border-gray-300 rounded-lg px-3 py-2 w-full text-gray-900"
                     />
                     <span>-</span>
                     <input
                         type="number"
-                        name="price_max"
+                        id="price_max"
+                        value="{{ request.GET.price_max }}"
                         placeholder="Max Price"
                         class="border border-gray-300 rounded-lg px-3 py-2 w-full text-gray-900"
                     />
@@ -65,31 +67,27 @@ body {
                 <!-- Features -->
                 <div class="flex items-center space-x-4">
                     <label class="flex items-center">
-                        <input type="checkbox" name="has_lights" value="true" class="mr-2" />
+                        <input type="checkbox" id="has_lights" value="true" class="mr-2" {% if request.GET.has_lights %}checked{% endif %} />
                         <span class="text-sm text-gray-900">Lights</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="checkbox" name="has_backboard" value="true" class="mr-2" />
+                        <input type="checkbox" id="has_backboard" value="true" class="mr-2" {% if request.GET.has_backboard %}checked{% endif %} />
                         <span class="text-sm text-gray-900">Backboard</span>
                     </label>
                 </div>
 
                 <!-- Sort -->
-                <select name="sort" class="border border-gray-300 rounded-lg px-4 py-2 text-gray-900">
-                    <option value="name">Sort by Name</option>
-                    <option value="price_low">Price: Low to High</option>
-                    <option value="price_high">Price: High to Low</option>
+                <select id="sort" class="border border-gray-300 rounded-lg px-4 py-2 text-gray-900">
+                    <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Sort by Name</option>
+                    <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
                 </select>
             </div>
-
-            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
-                Apply Filters
-            </button>
-        </form>
+        </div>
     </div>
 
     <!-- Courts Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div id="courts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for field in fields %}
         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition" style="color: #1a2b4c;">
             <!-- Court Image -->
@@ -148,25 +146,110 @@ body {
         {% endfor %}
     </div>
 
-    <!-- Pagination -->
-    {% if is_paginated %}
-    <div class="mt-8 flex justify-center">
-        <nav class="flex space-x-2">
-            {% if page_obj.has_previous %}
-            <a href="?page=1" class="px-3 py-2 border rounded">First</a>
-            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 border rounded">Previous</a>
-            {% endif %}
-
-            <span class="px-3 py-2 border rounded bg-green-600 text-white">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-            </span>
-
-            {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 border rounded">Next</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 border rounded">Last</a>
-            {% endif %}
-        </nav>
-    </div>
-    {% endif %}
 </div>
+
+<script>
+function getFilterParams() {
+    return {
+        search: document.getElementById('search').value,
+        city: document.getElementById('city').value,
+        price_min: document.getElementById('price_min').value,
+        price_max: document.getElementById('price_max').value,
+        has_lights: document.getElementById('has_lights').checked ? 'true' : '',
+        has_backboard: document.getElementById('has_backboard').checked ? 'true' : '',
+        sort: document.getElementById('sort').value,
+        page_size: 100
+    };
+}
+
+function getCourtSurfaceDisplay(surface) {
+    const choices = {
+        'HARD': 'Hard Court',
+        'CLAY': 'Clay Court',
+        'GRASS': 'Grass Court',
+        'SYNTHETIC': 'Synthetic'
+    };
+    return choices[surface] || surface;
+}
+
+function renderFields(fields) {
+    const grid = document.getElementById('courts-grid');
+    if (fields.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <p class="text-gray-500 text-lg">No courts found matching your criteria.</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    fields.forEach(field => {
+        const imageUrl = field.image_url || field.court_image || '';
+        const imageHtml = imageUrl ?
+            `<img src="${imageUrl}" alt="${field.name}" class="w-full h-full object-cover" />` :
+            `<div class="flex items-center justify-center h-full"><span class="text-white text-6xl">🎾</span></div>`;
+
+        const lightsBadge = field.has_lights ? `<span class="bg-yellow-400 text-xs px-2 py-1 rounded-full block">💡 Lights</span>` : '';
+
+        html += `
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition" style="color: #1a2b4c;">
+                <div class="h-48 bg-gradient-to-br from-green-400 to-green-600 relative">
+                    ${imageHtml}
+                    <div class="absolute top-2 right-2 space-y-1">
+                        ${lightsBadge}
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">${field.name}</h3>
+                    <p class="text-gray-600 text-sm mb-2 flex items-start">
+                        <span class="mr-2">📍</span>
+                        <span>${field.city}, ${field.address.length > 50 ? field.address.substring(0, 50) + '...' : field.address}</span>
+                    </p>
+                    <div class="flex items-center justify-between text-sm text-gray-600 mb-3">
+                        <span>🎾 ${field.number_of_courts} court${field.number_of_courts > 1 ? 's' : ''}</span>
+                        <span>${getCourtSurfaceDisplay(field.court_surface)}</span>
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-2xl font-bold text-green-600">Rp ${field.price_per_hour.toLocaleString()}</p>
+                            <p class="text-xs text-gray-500">per hour</p>
+                        </div>
+                    </div>
+                    <a href="/booking/field/${field.id}/" class="block w-full bg-green-600 text-white text-center py-2 rounded-lg hover:bg-green-700 transition">
+                        BOOK NOW
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+    grid.innerHTML = html;
+}
+
+function fetchAndRender() {
+    const params = getFilterParams();
+    const queryString = new URLSearchParams(params).toString();
+
+    fetch(`/booking/api/fields/?${queryString}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                renderFields(data.data);
+            }
+        })
+        .catch(error => console.error('Error fetching fields:', error));
+}
+
+// Event listeners
+document.getElementById('search').addEventListener('input', fetchAndRender);
+document.getElementById('city').addEventListener('change', fetchAndRender);
+document.getElementById('price_min').addEventListener('input', fetchAndRender);
+document.getElementById('price_max').addEventListener('input', fetchAndRender);
+document.getElementById('has_lights').addEventListener('change', fetchAndRender);
+document.getElementById('has_backboard').addEventListener('change', fetchAndRender);
+document.getElementById('sort').addEventListener('change', fetchAndRender);
+
+// Initial load
+document.addEventListener('DOMContentLoaded', fetchAndRender);
+</script>
 {% endblock %}

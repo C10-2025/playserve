@@ -933,7 +933,11 @@ def admin_api_field_update(request, pk):
     if request.method != "POST":
         return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
 
-    field = get_object_or_404(PlayingField, pk=pk, created_by=request.user)
+    # Admin can edit all courts, regular users only their own
+    if _is_admin(request.user):
+        field = get_object_or_404(PlayingField, pk=pk)
+    else:
+        field = get_object_or_404(PlayingField, pk=pk, created_by=request.user)
 
     # Prepare data with defaults for missing fields that Flutter doesn't send
     data = request.POST.copy()
@@ -958,7 +962,11 @@ def admin_api_field_delete(request, pk):
     if request.method != "POST":
         return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
 
-    field = get_object_or_404(PlayingField, pk=pk, created_by=request.user)
+    # Admin can delete all courts, regular users only their own
+    if _is_admin(request.user):
+        field = get_object_or_404(PlayingField, pk=pk)
+    else:
+        field = get_object_or_404(PlayingField, pk=pk, created_by=request.user)
     field.is_active = False
     field.save()
     return JsonResponse({"status": "success", "message": "Field deactivated"})

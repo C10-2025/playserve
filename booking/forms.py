@@ -2,6 +2,9 @@ from django import forms
 from .models import PlayingField, Booking
 from datetime import datetime, time, timedelta
 
+def _is_admin(user):
+    return hasattr(user, 'profile') and user.profile.role == 'ADMIN'
+
 class BookingStepOneForm(forms.Form):
     """Step 1: Identity and Contact Information"""
     booker_name = forms.CharField(
@@ -211,9 +214,9 @@ class FieldForm(forms.ModelForm):
             self.fields['amenities_equipment_rental'].initial = 'equipment_rental' in amenities_list
 
     def clean_name(self):
-        """Validate court name uniqueness for this admin"""
+        """Validate court name uniqueness - skip for admin users who can manage all courts"""
         name = self.cleaned_data.get('name')
-        if name and self.user:
+        if name and self.user and not _is_admin(self.user):
             existing = PlayingField.objects.filter(
                 name__iexact=name,
                 created_by=self.user

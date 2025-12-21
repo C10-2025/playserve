@@ -142,7 +142,7 @@ def review_list(request):
         "analytics": analytics,
     }
 
-    # 🔥 AJAX: return partial only
+    # AJAX: return partial only
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         html = render_to_string("partials/review_list_content.html", context, request=request)
         return JsonResponse({"html": html})

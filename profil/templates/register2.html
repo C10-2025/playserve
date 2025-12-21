@@ -83,7 +83,11 @@
                         window.location.href = data.redirect_url || '/';
                     }, 1500);
                 } else {
-                    showToast('Error', data.message || 'Please correct the errors.', 'error');
+                    let errorMessage = data.message || 'Please correct the errors.';
+                    if (data.errors && data.errors.instagram) {
+                        errorMessage = data.errors.instagram[0];
+                    }
+                    showToast('Error', errorMessage, 'error');
                 }
             })
             .catch(error => {

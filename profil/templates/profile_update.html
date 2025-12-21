@@ -45,6 +45,14 @@
                             <label for="{{ form.lokasi.id_for_label }}">LOCATION</label>
                             {{ form.lokasi }}
                         </div>
+                        <div class="form-group">
+                            <label>NEW PASSWORD</label>
+                            {{ form.new_password }}
+                        </div>
+                        <div class="form-group">
+                            <label>CONFIRM PASSWORD</label>
+                            {{ form.confirm_password }}
+                        </div>
                         
                         {{ form.avatar.as_hidden }} 
                         
@@ -81,6 +89,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+function syncProfileData() {
+    const activeElement = document.activeElement;
+    const avatarChoicesDiv = document.getElementById('avatar-choices');
+
+    if (avatarChoicesDiv && avatarChoicesDiv.style.display === 'block') {
+        return; 
+    }
+    
+    if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'SELECT') {
+        return; 
+    }
+
+    fetch('/auth/get_user/') 
+        .then(response => response.json())
+        .then(data => {
+            if (data.status) {
+                const lokasiField = document.querySelector('select[name="lokasi"]');
+                if (lokasiField && lokasiField.value !== data.lokasi) {
+                    lokasiField.value = data.lokasi;
+                }
+
+                const currentAvatarImg = document.getElementById('current-avatar-img');
+                const avatarHiddenInput = document.querySelector('input[name="avatar"]');
+                if (avatarHiddenInput && avatarHiddenInput.value !== data.avatar) {
+                    avatarHiddenInput.value = data.avatar;
+                    currentAvatarImg.src = "/static/" + data.avatar;
+                }
+                
+                const instaField = document.querySelector('input[name="instagram"]');
+                if (instaField && instaField.value !== data.instagram) {
+                    instaField.value = data.instagram;
+                }
+            }
+        });
+}
+
+setInterval(syncProfileData, 3000);
+
     document.getElementById('edit-profile-form').addEventListener('submit', function(event) {
         event.preventDefault();
         const formData = new FormData(this);
@@ -91,7 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.status === 'success') {
                 showToast('Success!', data.message, 'success');
             } else {
-                showToast('Error!', data.message || 'Update failed.', 'error');
+                let errorMessage = data.message || 'Please correct the errors.';
+                if (data.errors && data.errors.instagram) {
+                    errorMessage = data.errors.instagram[0];
+                }
+                showToast('Error', errorMessage, 'error');
             }
         })
         .catch(error => {

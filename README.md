@@ -42,7 +42,7 @@ _Website_ kami bernama PlayServe, sebuah _website_ yang dirancang khusus untuk p
 2. _Player_, _role_ untuk para pemain tenis. _Player_ memiliki akses ke seluruh fitur kecuali fitur Add New Field dengan akses terbatas.
 
 ## 🔗 Link
-- [PWS](https://jonathan-yitskhaq-playserve.pbp.cs.ui.ac.id/)
+- [PWS](http://127.0.0.1:8000/)
 - [_Dataset_](https://catalog.data.gov/dataset/tenis-courts)
 - [_Design_](https://www.figma.com/design/Ov2RsMYx9U1vhZXtw1lSY4/UI-UX-WEB?node-id=0-1&t=r3axZEDkETmZLSoK-1)
 - [Aplikasi]()

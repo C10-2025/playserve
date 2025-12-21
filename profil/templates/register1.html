@@ -53,6 +53,13 @@
                     window.location.href = body.redirect_url;
                 } else {
                     let errorMessage = body.message || 'Please correct the errors.';
+                    if (body.errors && body.errors.password) {
+                        errorMessage = body.errors.password[0];
+                    } else if (body.errors && body.errors.password2) {
+                        errorMessage = body.errors.password2[0];
+                    } else if (body.errors && body.errors.username) {
+                        errorMessage = body.errors.username[0];
+                    }
                     if (body.errors && body.errors.password2) {
                          errorMessage = body.errors.password2[0];
                     }

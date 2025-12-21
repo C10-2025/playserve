@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from .forms import RegistrationFormStep1, RegistrationFormStep2, ProfileUpdateForm
@@ -93,11 +93,19 @@ def profile_update_view(request):
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, instance=request.user.profile)
         if form.is_valid():
-            form.save()
+            profile = form.save()
+            
+            new_password = form.cleaned_data.get('new_password')
+            if new_password:
+                user = request.user
+                user.set_password(new_password)
+                user.save()
+                update_session_auth_hash(request, user)
+
             return JsonResponse({
                 'status': 'success',
                 'toast_type': 'success',
-                'message': 'Profile updated successfully.'
+                'message': 'Profile and Password updated successfully.'
             })
         errors = dict(form.errors.items())
         return JsonResponse({'status': 'error', 'errors': errors, 'toast_type': 'error', 'message': 'Failed to update profile.'}, status=400)

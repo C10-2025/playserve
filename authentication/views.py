@@ -1,5 +1,5 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, update_session_auth_hash
 from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
 from django.contrib.auth.models import User
@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from profil.models import Profile  
 import json
+import re
 
 @csrf_exempt
 def login(request):
@@ -50,6 +51,12 @@ def register_step1(request):
             return JsonResponse({
                 "status": False,
                 "message": "All fields are required."
+            }, status=400)
+
+        if len(password1) < 8:
+            return JsonResponse({
+                "status": False, 
+                "message": "Password must be at least 8 characters long."
             }, status=400)
 
         if password1 != password2:
@@ -97,10 +104,14 @@ def register_step2(request):
                 "status": False,
                 "message": "Username is required."
             }, status=400)
-
+        if instagram:
+            if instagram.startswith('@'):
+                return JsonResponse({"status": False, "message": "No need for @ at the beginning."}, status=400)
+            if not re.match(r'^[a-zA-Z0-9._]+$', instagram):
+                return JsonResponse({"status": False, "message": "Invalid Instagram characters."}, status=400)
+        
         user = User.objects.get(username=username)
         profile = Profile.objects.get(user=user)
-
         profile.lokasi = lokasi
         profile.instagram = instagram
         profile.avatar = avatar_path
@@ -163,10 +174,28 @@ def edit_profile(request):
         lokasi = data.get("lokasi")
         instagram = data.get("instagram")
         avatar = data.get("avatar")
+        new_password = data.get("new_password")
+        confirm_password = data.get("confirm_password")
 
         user = request.user
         profile = Profile.objects.get(user=user)
+        
+        if instagram:
+            if instagram.startswith('@'):
+                return JsonResponse({"status": False, "message": "No need for @ at the beginning."}, status=400)
+            if not re.match(r'^[a-zA-Z0-9._]+$', instagram):
+                return JsonResponse({"status": False, "message": "Invalid Instagram characters."}, status=400)
 
+        if new_password:
+            if len(new_password) < 8:
+                return JsonResponse({"status": False, "message": "Password must be at least 8 characters."}, status=400)
+            if new_password != confirm_password:
+                return JsonResponse({"status": False, "message": "Passwords do not match."}, status=400)
+            
+            user.set_password(new_password)
+            user.save()
+            update_session_auth_hash(request, user)
+        
         if username and username != user.username:
             if hasattr(profile, "username_changed") and profile.username_changed:
                 return JsonResponse({"status": False, "message": "Username cannot be changed again."}, status=400)
@@ -196,13 +225,10 @@ def edit_profile(request):
     except Exception as e:
         return JsonResponse({"status": False, "message": str(e)}, status=500)
 
-
-
 def get_user(request):
     user = request.user
     profile = getattr(user, 'profile', None)
 
-    # kalau admin, paksa rank "ADMIN"
     if user.is_superuser or user.is_staff:
         rank = "ADMIN"
     else:
@@ -217,8 +243,6 @@ def get_user(request):
         "lokasi": getattr(profile, 'lokasi', 'Jakarta'),
     }
     return JsonResponse(data)
-
-
 
 @csrf_exempt
 def check_admin_status(request):
@@ -237,7 +261,6 @@ def check_admin_status(request):
 
 @csrf_exempt
 def get_all_users(request):
-    # Cek Admin
     if not request.user.is_authenticated or not request.user.is_superuser:
         return JsonResponse({"status": False, "message": "Unauthorized"}, status=403)
 
@@ -245,7 +268,6 @@ def get_all_users(request):
     data = []
 
     for u in users:
-        # Skip superuser agar admin tidak menghapus dirinya sendiri
         if u.is_superuser:
             continue
             
@@ -272,11 +294,6 @@ def admin_delete_user(request):
         }, status=403)
 
     try:
-        # 🔻 HAPUS/GANTI BAGIAN INI 🔻
-        # data = json.loads(request.body) 
-        # username = data.get("username")
-
-        # ✅ GANTI JADI INI (Pakai request.POST):
         username = request.POST.get("username")
 
         if not username:
@@ -293,7 +310,6 @@ def admin_delete_user(request):
                 "message": "Cannot delete an admin account."
             }, status=400)
 
-        # Hapus Profile dulu (opsional, tergantung setting on_delete di models)
         if hasattr(target_user, 'profile'):
             target_user.profile.delete()
             

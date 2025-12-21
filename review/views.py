@@ -88,7 +88,7 @@ def review_list(request):
             "review_set",
             queryset=Review.objects.order_by("-id")
         )
-    ) # order
+    ) # latest first
 
     # SEARCH (name OR city)
     if search:
@@ -200,7 +200,7 @@ def delete_review(request, review_id):
 
 ## JSON helpers (for dev)
 def show_json(request):
-    review_list = Review.objects.all()
+    review_list = Review.objects.select_related("user", "field").order_by("-id")  # latest first
     data = [
         {
             'username': review.user.username,

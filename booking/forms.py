@@ -18,7 +18,7 @@ class BookingStepOneForm(forms.Form):
         label="Phone Number",
         widget=forms.TextInput(attrs={
             'class': 'w-full border rounded px-3 py-2 text-gray-600',
-            'placeholder': '+62 812-3456-7890'
+            'placeholder': '+62 812-3456-7890 or 081234567890'
         })
     )
 
@@ -30,6 +30,19 @@ class BookingStepOneForm(forms.Form):
             'placeholder': 'your@email.com'
         })
     )
+
+    def clean_booker_phone(self):
+        phone = self.cleaned_data.get('booker_phone')
+        if phone:
+            phone = phone.strip()
+            clean_phone = phone.lstrip('+')
+            if not clean_phone.isdigit():
+                raise forms.ValidationError("Phone number must contain only digits.")
+            if not (10 <= len(clean_phone) <= 15):
+                raise forms.ValidationError("Phone number must be 10-15 digits long.")
+            if not (phone.startswith('0') or phone.startswith('+62')):
+                raise forms.ValidationError("Phone number must start with '0' or '+62'.")
+        return phone
 
 
 class BookingStepTwoForm(forms.Form):

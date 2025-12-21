@@ -750,6 +750,16 @@ def api_book(request):
     if any(k not in payload or not payload[k] for k in required):
         return JsonResponse({"status": "error", "message": "Missing required fields"}, status=400)
 
+    # Validate phone number
+    phone = payload["booker_phone"].strip()
+    clean_phone = phone.lstrip('+')
+    if not clean_phone.isdigit():
+        return JsonResponse({"status": "error", "message": "Phone number must contain only digits."}, status=400)
+    if not (10 <= len(clean_phone) <= 15):
+        return JsonResponse({"status": "error", "message": "Phone number must be 10-15 digits long."}, status=400)
+    if not (phone.startswith('0') or phone.startswith('+62')):
+        return JsonResponse({"status": "error", "message": "Phone number must start with '0' or '+62'."}, status=400)
+
     try:
         field = PlayingField.objects.get(id=payload["field_id"], is_active=True)
     except PlayingField.DoesNotExist:

@@ -45,5 +45,5 @@ _Website_ kami bernama PlayServe, sebuah _website_ yang dirancang khusus untuk p
 - [PWS](http://127.0.0.1:8000/)
 - [_Dataset_](https://catalog.data.gov/dataset/tenis-courts)
 - [_Design_](https://www.figma.com/design/Ov2RsMYx9U1vhZXtw1lSY4/UI-UX-WEB?node-id=0-1&t=r3axZEDkETmZLSoK-1)
-- [Aplikasi]()
+- [Aplikasi](https://app.bitrise.io/app/faa47591-ce25-453a-a3a1-b6e40ac1cf11/installable-artifacts/11b3a9b306627536/public-install-page/0ad59190567c457c7d6f908317e3c059)
 - [Video](https://youtu.be/8o7zU8Cc1ss)

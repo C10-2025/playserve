@@ -16,7 +16,7 @@ _Website_ kami bernama PlayServe, sebuah _website_ yang dirancang khusus untuk p
 
 ## 📦 Modul
 ### 1. Profile (Annisa Fakhira Cendekia).
-- Informasi dasar, seperti nama, lokasi (_drop-down_), dan media sosial.
+- Informasi dasar, seperti _username_, lokasi (_drop-down_), dan media sosial.
 - Menyediakan 5 avatar untuk profil.
 - _Rank_ pemain yang ditentukan berdasarkan jumlah kemenangan.
 

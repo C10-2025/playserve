@@ -146,3 +146,15 @@ def delete_user_view(request, user_id):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+@login_required
+def get_user(request):
+    user = request.user
+    profile = getattr(user, 'profile', None)
+    
+    return JsonResponse({
+        "status": True,
+        "username": user.username,
+        "rank": profile.rank if profile else "BRONZE",
+        "avatar": profile.avatar if profile else "image/avatar1.svg",
+    })

@@ -132,4 +132,44 @@
             }
         });
     }
+
+    function syncNavbarProfile() {
+        if (!document.querySelector(".user-profile-link")) return;
+
+        fetch("{% url 'profil:get_user' %}") 
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.status) {
+                    document.querySelectorAll('.profile-avatar').forEach(img => {
+                        const newSrc = "/static/" + data.avatar;
+                        if (img.getAttribute('src') !== newSrc) {
+                            img.src = newSrc;
+                        }
+                    });
+
+                    document.querySelectorAll('.profile-username').forEach(span => {
+                        span.textContent = data.username;
+                    });
+                    document.querySelectorAll('.profile-rank').forEach(span => {
+                        span.textContent = data.rank;
+                    });
+
+                    document.querySelectorAll('.rank-badge').forEach(img => {
+                        const newBadgeSrc = "/static/image/" + data.rank.toLowerCase() + ".svg";
+                        if (img.getAttribute('src') !== newBadgeSrc) {
+                            img.src = newBadgeSrc;
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error("Navbar sync error:", err));
+    }
+
+    {% if user.is_authenticated %}
+        syncNavbarProfile(); 
+        setInterval(syncNavbarProfile, 3000); 
+    {% endif %}
 </script>

@@ -71,6 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentAvatarImg = document.getElementById('current-avatar-img');
     const avatarFormField = document.querySelector('input[name="avatar"]');
 
+    let isAvatarDirty = false;
+
     changeAvatarBtn.addEventListener('click', () => {
         const isHidden = avatarChoicesDiv.style.display === 'none';
         avatarChoicesDiv.style.display = isHidden ? 'block' : 'none';
@@ -78,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     avatarOptions.forEach(avatarImg => {
         avatarImg.addEventListener('click', () => {
+            isAvatarDirty = true;
             avatarOptions.forEach(img => img.classList.remove('selected'));
             avatarImg.classList.add('selected');
             
@@ -110,11 +113,12 @@ function syncProfileData() {
                     lokasiField.value = data.lokasi;
                 }
 
-                const currentAvatarImg = document.getElementById('current-avatar-img');
-                const avatarHiddenInput = document.querySelector('input[name="avatar"]');
-                if (avatarHiddenInput && avatarHiddenInput.value !== data.avatar) {
-                    avatarHiddenInput.value = data.avatar;
-                    currentAvatarImg.src = "/static/" + data.avatar;
+                if (!isAvatarDirty) {
+                    const avatarHiddenInput = document.querySelector('input[name="avatar"]');
+                    if (avatarHiddenInput && avatarHiddenInput.value !== data.avatar) {
+                        avatarHiddenInput.value = data.avatar;
+                        currentAvatarImg.src = "/static/" + data.avatar;
+                    }
                 }
                 
                 const instaField = document.querySelector('input[name="instagram"]');
@@ -135,9 +139,10 @@ setInterval(syncProfileData, 3000);
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
+                isAvatarDirty = false; 
                 showToast('Success!', data.message, 'success');
             } else {
-                let errorMessage = data.message || 'Please correct the errors.';
+                let errorMessage = data.message || 'Update failed.';
                 if (data.errors && data.errors.instagram) {
                     errorMessage = data.errors.instagram[0];
                 }
